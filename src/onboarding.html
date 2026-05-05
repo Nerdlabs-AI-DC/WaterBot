@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterBot — Setup</title>
+    <link rel="icon" type="image/png" href="assets/waterbot-small.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #00a8ff;
+            --primary-glow: rgba(0, 168, 255, 0.5);
+            --secondary: #0088cc;
+            --success: #00d084;
+            --danger: #ff4757;
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(10, 14, 23, 0.88);
+            --bg-hover: rgba(20, 30, 45, 0.9);
+            --text: #e1e8f0;
+            --text-dim: #8b95a5;
+            --border: rgba(0, 168, 255, 0.2);
+        }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: var(--bg-dark);
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--text);
+            user-select: none;
+        }
+
+        /* Background canvas */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.55;
+        }
+
+        /* INTRO SCREEN */
+        #intro-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.8s ease;
+        }
+
+        #intro-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #intro-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #click-hint {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+
+        #click-hint.visible { opacity: 1; }
+
+        #click-hint::after {
+            content: '';
+            display: block;
+            margin: 0.5rem auto 0;
+            width: 1px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--primary), transparent);
+            animation: pulse-line 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-line {
+            0%, 100% { opacity: 0.3; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(1.2); }
+        }
+
+        /* ONBOARDING */
+        #onboarding {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        #onboarding.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .onboard-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3rem 3.5rem;
+            max-width: 560px;
+            width: 90%;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 0 80px rgba(0, 168, 255, 0.08), 0 30px 80px rgba(0,0,0,0.55);
+            overflow: hidden;
+        }
+
+        /* Corner accent */
+        .onboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 120px; height: 120px;
+            background: radial-gradient(circle at top left, rgba(0,168,255,0.12), transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Page slides */
+        .page {
+            display: none;
+        }
+
+        .page.active { display: block; }
+
+        .page.slide-in-forward {
+            animation: slideIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .page.slide-out {
+            animation: slideOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .page.slide-in-back {
+            animation: slideInBack 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .page.slide-out-forward {
+            animation: slideOutForward 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(-40px); }
+        }
+
+        @keyframes slideInBack {
+            from { opacity: 0; transform: translateX(-40px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideOutForward {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(40px); }
+        }
+
+        /* Page header */
+        .page-badge {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 0.6rem;
+            opacity: 0.8;
+        }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            margin-bottom: 0.6rem;
+        }
+
+        .page-desc {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        /* Feature list (page 1) */
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 1.2rem;
+            background: rgba(0, 168, 255, 0.05);
+            border: 1px solid rgba(0, 168, 255, 0.1);
+            border-radius: 12px;
+            transition: border-color 0.3s ease;
+        }
+
+        .feature-item:hover { border-color: rgba(0, 168, 255, 0.3); }
+
+        .feature-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .feature-text h4 {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            color: var(--text);
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+        }
+
+        .feature-text p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* Toggle switches */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .setting-row:last-child { border-bottom: none; }
+
+        .setting-info { flex: 1; padding-right: 1.5rem; }
+
+        .setting-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.2rem;
+        }
+
+        .setting-hint {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* Toggle */
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .toggle input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 26px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            left: 3px; top: 3px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: rgba(0, 168, 255, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(0, 168, 255, 0.3);
+        }
+
+        .toggle input:checked + .toggle-slider::before {
+            transform: translateX(22px);
+            background: var(--primary);
+        }
+
+        /* Selectors (page 3) */
+        .select-group {
+            margin-bottom: 1.4rem;
+        }
+
+        .select-label {
+            display: block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .styled-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b95a5' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            cursor: pointer;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .styled-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,168,255,0.1);
+        }
+
+        .styled-select option {
+            background: #0f1520;
+            color: var(--text);
+        }
+
+        .styled-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .styled-input::placeholder { color: var(--text-dim); }
+
+        .styled-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,168,255,0.1);
+        }
+
+        .styled-input.input-error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
+            animation: shake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); }
+            20%, 80% { transform: translateX(3px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+
+        .field-error-msg {
+            font-size: 0.78rem;
+            color: var(--danger);
+            margin-top: 0.4rem;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+        }
+
+        .field-error-msg.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navigation */
+        .nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .btn-nav {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0.75rem 1.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .btn-nav-secondary {
+            background: transparent;
+            border-color: rgba(255,255,255,0.1);
+            color: var(--text-dim);
+        }
+
+        .btn-nav-secondary:hover {
+            border-color: var(--border);
+            color: var(--text);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .btn-nav-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .btn-nav-primary:hover {
+            box-shadow: 0 0 25px rgba(0, 168, 255, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav-primary:active { transform: translateY(0); }
+
+        .btn-nav img { vertical-align: middle; }
+
+        .btn-nav-secondary img {
+            filter: brightness(0) invert(1) opacity(0.55);
+            transition: filter 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-nav-secondary:hover img {
+            filter: brightness(0) invert(1);
+}
+
+        /* Step dots */
+        .step-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            width: 24px;
+            border-radius: 4px;
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        /* LOADING SCREEN */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        #loading-screen.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loading-box {
+            width: 320px;
+            text-align: center;
+        }
+
+        .loading-status {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            letter-spacing: 0.5px;
+            height: 1.4em;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary), #00d4ff);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .loading-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: bounceDot 1.2s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) { animation-delay: 0.15s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes bounceDot {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Background network canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- INTRO SCREEN -->
+<div id="intro-screen">
+    <canvas id="intro-canvas"></canvas>
+    <div id="click-hint">Click anywhere to continue</div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+    <div class="onboard-card">
+
+        <!-- PAGE 1: Welcome -->
+        <div class="page active" id="page-1">
+            <div class="page-badge">Getting Started</div>
+            <div class="page-title">Welcome to WaterBot</div>
+            <div class="page-desc">Your all-in-one platform for managing intelligent Discord bots. Before we get started, let's configure your preferences.</div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon"><img src="assets/bot.svg" alt="bot" style="width:1.4rem;height:1.4rem;"></div>
+                    <div class="feature-text">
+                        <h4>Multiple Bots</h4>
+                        <p>Run and manage several Discord bots simultaneously, each with its own personality and settings.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><img src="assets/cpu.svg" alt="ai" style="width:1.4rem;height:1.4rem;"></div>
+                    <div class="feature-text">
+                        <h4>Many AI Providers</h4>
+                        <p>Choose from a variety of AI providers, including OpenAI, OpenRouter, Ollama and more in the future.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><img src="assets/wrench.svg" alt="tools" style="width:1.4rem;height:1.4rem;"></div>
+                    <div class="feature-text">
+                        <h4>Alpha version</h4>
+                        <p>You are using an early access version of WaterBot. Expect some features to be incomplete or subject to change. You can provide feedback in our <a href="https://discord.gg/rkSKtdW99R" style="color: var(--primary); text-decoration: none;">Discord Server</a>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-row">
+                <div class="step-dots">
+                    <div class="step-dot active" id="dot-1"></div>
+                    <div class="step-dot" id="dot-2"></div>
+                    <div class="step-dot" id="dot-3"></div>
+                    <div class="step-dot" id="dot-4"></div>
+                </div>
+                <button class="btn-nav btn-nav-primary" onclick="nextPage()">Next <img src="/assets/arrow-right.svg" alt="" style="width:1rem;height:1rem;"></button>
+            </div>
+        </div>
+
+        <!-- PAGE 2: Preferences -->
+        <div class="page" id="page-2">
+            <div class="page-badge">Configuration</div>
+            <div class="page-title">Your Preferences</div>
+            <div class="page-desc">Configure how WaterBot behaves. You can always change this later in settings.</div>
+
+            <div class="settings-list">
+                <div class="setting-row" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.1rem; margin-bottom: 1.1rem;">
+                    <div class="setting-info" style="flex: 1;">
+                        <div class="setting-label" style="margin-bottom: 0.4rem;">Dashboard Password</div>
+                        <div class="setting-hint">Set a password to secure your dashboard. You'll use this to log in.</div>
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.1rem;">
+                    <input class="styled-input" type="password" id="pref-password" placeholder="Enter a strong password" oninput="validatePassword()">
+                    <div class="field-error-msg" id="password-error" style="margin-top: 0.4rem;"></div>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <input class="styled-input" type="password" id="pref-password-confirm" placeholder="Confirm password" oninput="validatePassword()">
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Auto-refresh</div>
+                        <div class="setting-hint">Automatically refresh bots in the background</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="pref-autostart" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Visual effects</div>
+                        <div class="setting-hint">Toggle visual effects across the app</div>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="pref-notifications" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Web UI Port</div>
+                        <div class="setting-hint">Port for accessing the WaterBot dashboard</div>
+                    </div>
+                    <input class="styled-input" type="number" id="pref-web-ui-port" value="8221" min="1024" max="65535" style="width:120px;">
+                </div>
+            </div>
+
+            <div class="nav-row">
+                <div class="step-dots">
+                    <div class="step-dot" id="dot-1b"></div>
+                    <div class="step-dot active" id="dot-2b"></div>
+                    <div class="step-dot" id="dot-3b"></div>
+                    <div class="step-dot" id="dot-4b"></div>
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button class="btn-nav btn-nav-secondary" onclick="prevPage()"><img src="/assets/arrow-left.svg" alt="" style="width:1rem;height:1rem;"> Back</button>
+                    <button class="btn-nav btn-nav-primary" onclick="nextPage()">Next <img src="/assets/arrow-right.svg" alt="" style="width:1rem;height:1rem;"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: Connection -->
+        <div class="page" id="page-3">
+            <div class="page-badge">Connection</div>
+            <div class="page-title">Connect & Launch</div>
+            <div class="page-desc">Set your default AI provider and Discord user. You can always change these later in settings.</div>
+
+            <div class="select-group">
+                <label class="select-label" for="sel-provider">Default AI Provider</label>
+                <select class="styled-select" id="sel-provider" onchange="onboardProviderChange()">
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="ollama">Ollama</option>
+                </select>
+            </div>
+
+            <div class="select-group" id="ob-apikey-group">
+                <label class="select-label" id="ob-apikey-label" for="inp-apikey">OpenRouter API Key</label>
+                <input class="styled-input" type="password" id="inp-apikey" placeholder="sk-..." oninput="clearApiKeyError()">
+                <div class="field-error-msg" id="apikey-error">This field is required to continue.</div>
+            </div>
+
+            <div class="select-group" id="ob-baseurl-group" style="display:none;">
+                <label class="select-label" for="inp-baseurl">OpenAI Base URL <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:0.8rem;">(optional)</span></label>
+                <input class="styled-input" type="text" id="inp-baseurl" placeholder="https://api.openai.com/v1">
+            </div>
+
+            <div class="select-group">
+                <label class="select-label" for="inp-userid">Discord User ID <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:0.8rem;">(optional)</span></label>
+                <input class="styled-input" type="number" id="inp-userid" placeholder="e.g. 123456789012345678" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </div>
+
+            <div class="nav-row">
+                <div class="step-dots">
+                    <div class="step-dot" id="dot-1c"></div>
+                    <div class="step-dot" id="dot-2c"></div>
+                    <div class="step-dot active" id="dot-3c"></div>
+                    <div class="step-dot" id="dot-4c"></div>
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button class="btn-nav btn-nav-secondary" onclick="prevPage()"><img src="/assets/arrow-left.svg" alt="" style="width:1rem;height:1rem;"> Back</button>
+                    <button class="btn-nav btn-nav-primary" onclick="nextPage()">Next <img src="/assets/arrow-right.svg" alt="" style="width:1rem;height:1rem;"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4: Getting Started -->
+        <div class="page" id="page-4">
+            <div class="page-badge">Ready to Go</div>
+            <div class="page-title">Getting Started</div>
+            <div class="page-desc">WaterBot is now ready! Here's a quick guide to get you up and running.</div>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon"><img src="assets/plus.svg" alt="create" style="width:1.4rem;height:1.4rem;"></div>
+                    <div class="feature-text">
+                        <h4>Create Your First Bot</h4>
+                        <p>Use the dashboard to add a new bot instance. Configure its personality, commands, and AI settings.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><img src="assets/cog.svg" alt="settings" style="width:1.4rem;height:1.4rem;"></div>
+                    <div class="feature-text">
+                        <h4>Configure Settings</h4>
+                        <p>Set up your AI API keys, Discord tokens, and customize bot behaviors in the settings panel.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><img src="assets/chart-no-axes-combined.svg" alt="analytics" style="width:1.4rem;height:1.4rem;"></div>
+                    <div class="feature-text">
+                        <h4>Monitor & Manage</h4>
+                        <p>Track your bots' performance with live analytics. Start, stop, and update bots as needed.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-dim); text-align: center;">
+                Need help? Join our <a href="https://discord.gg/rkSKtdW99R" style="color: var(--primary); text-decoration: none;">Discord Server</a> or check the <a href="https://www.youtube.com/watch?v=0TcJUUtRsjQ" style="color: var(--primary); text-decoration: none;">Documentation</a>.
+            </div>
+
+            <div class="nav-row">
+                <div class="step-dots">
+                    <div class="step-dot" id="dot-1d"></div>
+                    <div class="step-dot" id="dot-2d"></div>
+                    <div class="step-dot" id="dot-3d"></div>
+                    <div class="step-dot active" id="dot-4d"></div>
+                </div>
+                <div style="display:flex;gap:0.75rem;">
+                    <button class="btn-nav btn-nav-secondary" onclick="prevPage()"><img src="/assets/arrow-left.svg" alt="" style="width:1rem;height:1rem;"> Back</button>
+                    <button class="btn-nav btn-nav-primary" onclick="startLoading()">Launch <img src="/assets/arrow-right.svg" alt="" style="width:1rem;height:1rem;"></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+    <div class="loading-logo">WaterBot</div>
+    <div class="loading-box">
+        <div class="loading-status" id="loading-status">Initializing…</div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="loading-dots">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   BACKGROUND NETWORK ANIMATION
+═══════════════════════════════════════════ */
+class NetworkAnimation {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.particles = [];
+        this.particleCount = 80;
+        this.connectionDistance = 150;
+        this.connectionDistanceSq = 150 * 150;
+
+        this.targetFPS = 60;
+        this.frameInterval = 1000 / this.targetFPS;
+        this.lastTime = performance.now();
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.init();
+        this.animate();
+    }
+
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+
+    init() {
+        this.particles = [];
+        for (let i = 0; i < this.particleCount; i++) {
+            this.particles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                vx: (Math.random() - 0.5) * 30,
+                vy: (Math.random() - 0.5) * 30,
+                radius: Math.random() * 2 + 1
+            });
+        }
+    }
+
+    animate(currentTime = performance.now()) {
+        requestAnimationFrame((time) => this.animate(time));
+
+        const elapsed = currentTime - this.lastTime;
+        if (elapsed < this.frameInterval) return;
+
+        this.lastTime = currentTime - (elapsed % this.frameInterval);
+
+        const dt = Math.min(elapsed / 1000, 0.1);
+
+        const ctx = this.ctx;
+        const particles = this.particles;
+        const n = particles.length;
+        const connDistSq = this.connectionDistanceSq;
+        const connDist = this.connectionDistance;
+
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        for (let i = 0; i < n; i++) {
+            const p = particles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+        }
+
+        ctx.lineWidth = 1;
+        for (let i = 0; i < n; i++) {
+            const p = particles[i];
+            for (let j = i + 1; j < n; j++) {
+                const o = particles[j];
+                const dx = p.x - o.x;
+                const dy = p.y - o.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq < connDistSq) {
+                    const opacity = (1 - Math.sqrt(distSq) / connDist) * 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(o.x, o.y);
+                    ctx.strokeStyle = `rgba(0,168,255,${opacity})`;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        ctx.fillStyle = 'rgba(0, 168, 255, 0.8)';
+        ctx.beginPath();
+        for (let i = 0; i < n; i++) {
+            const p = particles[i];
+            ctx.moveTo(p.x + p.radius, p.y);
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        }
+        ctx.fill();
+    }
+}
+
+new NetworkAnimation(document.getElementById('bg-canvas'));
+
+
+/* ═══════════════════════════════════════════
+   INTRO LETTER DOT ANIMATION
+═══════════════════════════════════════════ */
+const LETTER_MAPS = {
+    W: [
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [1,0,1,0,1],
+        [0,1,0,1,0],
+        [0,1,0,1,0],
+    ],
+    A: [
+        [0,1,1,0,0],
+        [1,0,0,1,0],
+        [1,1,1,1,0],
+        [1,0,0,1,0],
+        [1,0,0,1,0],
+    ],
+    T: [
+        [1,1,1,1,1],
+        [0,0,1,0,0],
+        [0,0,1,0,0],
+        [0,0,1,0,0],
+        [0,0,1,0,0],
+    ],
+    E: [
+        [1,1,1,1,0],
+        [1,0,0,0,0],
+        [1,1,1,0,0],
+        [1,0,0,0,0],
+        [1,1,1,1,0],
+    ],
+    R: [
+        [1,1,1,0,0],
+        [1,0,0,1,0],
+        [1,1,1,0,0],
+        [1,0,1,0,0],
+        [1,0,0,1,0],
+    ],
+    B: [
+        [1,1,1,0,0],
+        [1,0,0,1,0],
+        [1,1,1,0,0],
+        [1,0,0,1,0],
+        [1,1,1,0,0],
+    ],
+    O: [
+        [0,1,1,1,0],
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [0,1,1,1,0],
+    ],
+};
+
+const WORD       = ['W','A','T','E','R','B','O','T'];
+const DOT_S      = 16;   // px spacing between dot centres
+const DOT_RADIUS = 3.5;
+const LETTER_GAP = 3;    // columns of gap between letters
+const FLY_DURATION = 3200; // ms
+const BG_PARTICLES = 55;
+
+(function initIntro() {
+    const canvas  = document.getElementById('intro-canvas');
+    const ctx     = canvas.getContext('2d');
+    let   W, H;
+    let   letterDots  = [];
+    let   bgParticles = [];
+    let   flyStart    = null;
+    let   settled     = false;
+    let   raf;
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    function buildTargets() {
+        // Compute total pixel width of "WATERBOT"
+        const totalCols = WORD.length * 5 + (WORD.length - 1) * LETTER_GAP;
+        const totalRows = 5;
+        const startX = (W - (totalCols - 1) * DOT_S) / 2;
+        const startY = (H - (totalRows - 1) * DOT_S) / 2;
+
+        // Spawn each dot from a random point just outside one of the four screen edges
+        function spawnOffScreen() {
+            const MARGIN = 100;
+            const edge = Math.floor(Math.random() * 4);
+            switch (edge) {
+                case 0: return { x: Math.random() * W,    y: -MARGIN };        // top
+                case 1: return { x: Math.random() * W,    y: H + MARGIN };     // bottom
+                case 2: return { x: -MARGIN,              y: Math.random() * H }; // left
+                default:return { x: W + MARGIN,           y: Math.random() * H }; // right
+            }
+        }
+
+        letterDots = [];
+        WORD.forEach((letter, li) => {
+            const map = LETTER_MAPS[letter];
+            const offsetCol = li * (5 + LETTER_GAP);
+            map.forEach((row, ri) => {
+                row.forEach((bit, ci) => {
+                    if (!bit) return;
+                    const tx = startX + (offsetCol + ci) * DOT_S;
+                    const ty = startY + ri * DOT_S;
+                    const spawn = spawnOffScreen();
+                    letterDots.push({
+                        x: spawn.x,
+                        y: spawn.y,
+                        tx, ty,
+                        settled: false
+                    });
+                });
+            });
+        });
+    }
+
+    function initBg() {
+        bgParticles = [];
+        for (let i = 0; i < BG_PARTICLES; i++) {
+            bgParticles.push({
+                x:  Math.random() * W,
+                y:  Math.random() * H,
+                vx: (Math.random() - 0.5) * 30,
+                vy: (Math.random() - 0.5) * 30,
+                r:  Math.random() * 1.5 + 0.5
+            });
+        }
+    }
+
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+    let lastTime = performance.now();
+
+    function draw(now) {
+        raf = requestAnimationFrame(draw);
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // ── background particles ──
+        bgParticles.forEach((p, i) => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            if (p.x < 0 || p.x > W) p.vx *= -1;
+            if (p.y < 0 || p.y > H) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,168,255,0.6)';
+            ctx.fill();
+
+            for (let j = i + 1; j < bgParticles.length; j++) {
+                const o = bgParticles[j];
+                const dx = p.x - o.x, dy = p.y - o.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 130) {
+                    const op = (1 - d/130) * 0.35;
+                    ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(o.x,o.y);
+                    ctx.strokeStyle = `rgba(0,168,255,${op})`;
+                    ctx.lineWidth = 0.7;
+                    ctx.stroke();
+                }
+            }
+        });
+
+        // ── letter dots ──
+        if (flyStart !== null) {
+            const elapsed = now - flyStart;
+            const t = Math.min(elapsed / FLY_DURATION, 1);
+            const et = easeOutCubic(t);
+
+            letterDots.forEach(d => {
+                if (!settled) {
+                    d.x = d.x + (d.tx - d.x) * et * 0.045;
+                    d.y = d.y + (d.ty - d.y) * et * 0.045;
+                } else {
+                    d.x = d.tx;
+                    d.y = d.ty;
+                }
+            });
+
+            if (t >= 1 && !settled) {
+                settled = true;
+                letterDots.forEach(d => { d.x = d.tx; d.y = d.ty; });
+                setTimeout(() => {
+                    document.getElementById('click-hint').classList.add('visible');
+                }, 200);
+            }
+        }
+
+        // Draw connections between letter dots and nearby bg particles
+        const allDots = [...bgParticles.map(p => ({x: p.x, y: p.y})), ...letterDots];
+        letterDots.forEach(d => {
+            allDots.forEach(o => {
+                const dx = d.x - o.x, dy = d.y - o.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > 0 && dist < 110) {
+                    const op = (1 - dist/110) * 0.35;
+                    ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(o.x, o.y);
+                    ctx.strokeStyle = `rgba(0,168,255,${op})`;
+                    ctx.lineWidth = 0.7;
+                    ctx.stroke();
+                }
+            });
+        });
+
+        // Draw letter dots themselves
+        const glow = settled ? 12 : 6;
+        letterDots.forEach(d => {
+            ctx.save();
+            ctx.shadowBlur  = glow;
+            ctx.shadowColor = 'rgba(0,168,255,0.9)';
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, DOT_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = settled ? 'rgba(0,200,255,1)' : 'rgba(0,168,255,0.9)';
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+
+    function setup() {
+        resize();
+        buildTargets();
+        initBg();
+        window.addEventListener('resize', () => {
+            resize();
+            buildTargets();
+        });
+
+        setTimeout(() => { flyStart = performance.now(); }, 500);
+
+        requestAnimationFrame(t => { lastTime = t; draw(t); });
+    }
+
+    setup();
+
+    // Click to continue
+    document.getElementById('intro-screen').addEventListener('click', () => {
+        if (!settled) return;
+        cancelAnimationFrame(raf);
+        const intro = document.getElementById('intro-screen');
+        intro.classList.add('fade-out');
+        setTimeout(showOnboarding, 800);
+    });
+})();
+
+
+/* ═══════════════════════════════════════════
+   ONBOARDING PAGE LOGIC
+═══════════════════════════════════════════ */
+let currentPage = 1;
+const TOTAL_PAGES = 4;
+
+function updateDots(pageNum) {
+    for (let p = 1; p <= TOTAL_PAGES; p++) {
+        ['','b','c','d'].forEach(sfx => {
+            const el = document.getElementById(`dot-${p}${sfx}`);
+            if (el) el.classList.toggle('active', p === pageNum);
+        });
+    }
+}
+
+function showOnboarding() {
+    document.getElementById('onboarding').classList.add('visible');
+}
+
+function nextPage() {
+    if (currentPage >= TOTAL_PAGES) return;
+
+    // Validate password on page 2
+    if (currentPage === 2) {
+        const password = document.getElementById('pref-password').value.trim();
+        const confirm = document.getElementById('pref-password-confirm').value.trim();
+        const errorEl = document.getElementById('password-error');
+
+        if (!password) {
+            errorEl.textContent = 'Password is required.';
+            errorEl.classList.add('visible');
+            document.getElementById('pref-password').classList.add('input-error');
+            return;
+        }
+
+        if (password !== confirm) {
+            errorEl.textContent = 'Passwords do not match.';
+            errorEl.classList.add('visible');
+            document.getElementById('pref-password-confirm').classList.add('input-error');
+            return;
+        }
+    }
+
+    // Validate API key on page 3 for non-Ollama providers
+    if (currentPage === 3) {
+        const provider = document.getElementById('sel-provider').value;
+        const inputEl  = document.getElementById('inp-apikey');
+        if (provider !== 'ollama' && !inputEl.value.trim()) {
+            inputEl.classList.remove('input-error');
+            inputEl.offsetHeight;
+            inputEl.classList.add('input-error');
+            document.getElementById('apikey-error').classList.add('visible');
+            inputEl.focus();
+            return;
+        }
+    }
+
+    const cur = document.getElementById(`page-${currentPage}`);
+    cur.classList.add('slide-out');
+    setTimeout(() => {
+        cur.classList.remove('active','slide-out');
+        currentPage++;
+        updateDots(currentPage);
+        const next = document.getElementById(`page-${currentPage}`);
+        next.classList.add('active', 'slide-in-forward');
+        setTimeout(() => next.classList.remove('slide-in-forward'), 450);
+    }, 350);
+}
+
+function prevPage() {
+    if (currentPage <= 1) return;
+    const cur = document.getElementById(`page-${currentPage}`);
+    cur.classList.add('slide-out-forward');
+    setTimeout(() => {
+        cur.classList.remove('active','slide-out-forward');
+        currentPage--;
+        updateDots(currentPage);
+        const prev = document.getElementById(`page-${currentPage}`);
+        prev.classList.add('active','slide-in-back');
+        setTimeout(() => prev.classList.remove('slide-in-back'), 450);
+    }, 350);
+}
+
+
+function clearApiKeyError() {
+    const inputEl = document.getElementById('inp-apikey');
+    inputEl.classList.remove('input-error');
+    document.getElementById('apikey-error').classList.remove('visible');
+}
+
+function validatePassword() {
+    const password = document.getElementById('pref-password').value.trim();
+    const confirm = document.getElementById('pref-password-confirm').value.trim();
+    const errorEl = document.getElementById('password-error');
+    const pwdEl = document.getElementById('pref-password');
+    const confirmEl = document.getElementById('pref-password-confirm');
+
+    errorEl.classList.remove('visible');
+    pwdEl.classList.remove('input-error');
+    confirmEl.classList.remove('input-error');
+
+    if (!password || !confirm) return;
+
+    if (password !== confirm) {
+        errorEl.textContent = 'Passwords do not match.';
+        errorEl.classList.add('visible');
+        confirmEl.classList.add('input-error');
+    }
+}
+
+/* ═══════════════════════════════════════════
+   PROVIDER FIELD LOGIC (page 3)
+═══════════════════════════════════════════ */
+function onboardProviderChange() {
+    clearApiKeyError();
+    const provider = document.getElementById('sel-provider').value;
+    const labelEl  = document.getElementById('ob-apikey-label');
+    const inputEl  = document.getElementById('inp-apikey');
+    const baseUrlGroup = document.getElementById('ob-baseurl-group');
+
+    if (provider === 'ollama') {
+        labelEl.innerHTML = 'Ollama Base URL <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:0.8rem;">(optional)</span>';
+        inputEl.placeholder = 'http://localhost:11434';
+        inputEl.type = 'text';
+        baseUrlGroup.style.display = 'none';
+    } else if (provider === 'openai') {
+        labelEl.textContent = 'OpenAI API Key';
+        inputEl.placeholder = 'sk-...';
+        inputEl.type = 'password';
+        baseUrlGroup.style.display = 'block';
+    } else {
+        const name = provider.charAt(0).toUpperCase() + provider.slice(1);
+        labelEl.textContent = `${name} API Key`;
+        inputEl.placeholder = 'sk-...';
+        inputEl.type = 'password';
+        baseUrlGroup.style.display = 'none';
+    }
+}
+
+/* ═══════════════════════════════════════════
+   LOADING SCREEN
+═══════════════════════════════════════════ */
+function startLoading() {
+    const password      = document.getElementById('pref-password').value.trim();
+    const provider  = document.getElementById('sel-provider').value;
+    const apiKey    = document.getElementById('inp-apikey').value.trim();
+    const baseUrl   = document.getElementById('inp-baseurl').value.trim();
+    const userId    = document.getElementById('inp-userid').value.trim();
+    const autoRefresh    = document.getElementById('pref-autostart').checked;
+    const visualEffects  = document.getElementById('pref-notifications').checked;
+    const webUiPort      = parseInt(document.getElementById('pref-web-ui-port').value) || 8221;
+
+    document.getElementById('onboarding').classList.remove('visible');
+    const ls = document.getElementById('loading-screen');
+    ls.classList.add('visible');
+
+    const statusEl = document.getElementById('loading-status');
+    const fillEl   = document.getElementById('progress-fill');
+
+    function setProgress(msg, pct) {
+        statusEl.style.opacity = '0';
+        setTimeout(() => {
+            statusEl.textContent = msg;
+            statusEl.style.opacity = '1';
+            fillEl.style.width = pct + '%';
+        }, 120);
+    }
+
+    function showError(msg) {
+        fillEl.style.background = 'var(--danger)';
+        fillEl.style.boxShadow  = '0 0 10px rgba(255,71,87,0.5)';
+        statusEl.style.opacity  = '0';
+        setTimeout(() => {
+            statusEl.textContent = '⚠ ' + msg;
+            statusEl.style.color = 'var(--danger)';
+            statusEl.style.opacity = '1';
+        }, 120);
+    }
+
+    setProgress('Saving configuration…', 8);
+
+    fetch('/api/setup/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            password,
+            provider,
+            api_key:          apiKey,
+            base_url:         baseUrl || null,
+            discord_user_id:  userId  || null,
+            web_ui_port:      webUiPort,
+            app_settings: {
+                autoRefresh,
+                visualEffects,
+                notifications: true,
+            }
+        })
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (!result.success) throw new Error(result.error || 'Save failed');
+
+        const evtSource = new EventSource('/api/setup/launch-stream');
+
+        evtSource.onmessage = (e) => {
+            let data;
+            try { data = JSON.parse(e.data); } catch { return; }
+
+            if (data.error) {
+                evtSource.close();
+                showError(data.msg);
+                return;
+            }
+
+            setProgress(data.msg, data.pct);
+
+            if (data.done) {
+                evtSource.close();
+                const port = data.web_ui_port || 8221;
+                setTimeout(() => {
+                    window.location.href = `http://localhost:${port}`;
+                }, 700);
+            }
+        };
+
+        evtSource.onerror = () => {
+            evtSource.close();
+            showError('Lost connection to setup server. Check the terminal.');
+        };
+    })
+    .catch(err => {
+        showError(err.message || 'Could not reach setup server.');
+    });
+}
+</script>
+</body>
+</html>

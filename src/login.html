@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterBot — Login</title>
+    <link rel="icon" type="image/png" href="assets/waterbot-small.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00a8ff;
+            --primary-glow: rgba(0, 168, 255, 0.5);
+            --secondary: #0088cc;
+            --success: #00d084;
+            --danger: #ff4757;
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(10, 14, 23, 0.88);
+            --bg-hover: rgba(20, 30, 45, 0.9);
+            --text: #e1e8f0;
+            --text-dim: #8b95a5;
+            --border: rgba(0, 168, 255, 0.2);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg-dark);
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--text);
+            user-select: none;
+        }
+
+        /* Background canvas */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.55;
+        }
+
+        /* Container */
+        .login-container {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3rem 3.5rem;
+            max-width: 420px;
+            width: 90%;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 0 80px rgba(0, 168, 255, 0.08), 0 30px 80px rgba(0,0,0,0.55);
+            overflow: hidden;
+            animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Corner accent */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at top left, rgba(0, 168, 255, 0.12), transparent 70%);
+            pointer-events: none;
+        }
+
+        .login-logo {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .login-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-align: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .login-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.6rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.1);
+        }
+
+        .form-input.error {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15);
+            animation: shake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); }
+            20%, 80% { transform: translateX(3px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+
+        .error-message {
+            font-size: 0.8rem;
+            color: var(--danger);
+            margin-top: 0.4rem;
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            display: none;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .login-button:hover {
+            box-shadow: 0 0 25px rgba(0, 168, 255, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-spinner.visible {
+            display: inline-block;
+        }
+
+        .button-text {
+            display: inline;
+        }
+
+        .button-text.hidden {
+            display: none;
+        }
+
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Background network canvas -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Login Container -->
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">WaterBot</div>
+        <div class="login-title">Welcome Back</div>
+        <div class="login-subtitle">Enter your password to continue</div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input
+                    class="form-input"
+                    type="password"
+                    id="password"
+                    autocomplete="current-password"
+                    required
+                >
+                <div class="error-message" id="password-error"></div>
+            </div>
+
+            <button type="submit" class="login-button" id="login-btn">
+                <span class="loading-spinner" id="spinner"></span>
+                <span class="button-text" id="button-text">Sign In</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   BACKGROUND NETWORK ANIMATION
+═══════════════════════════════════════════ */
+class NetworkAnimation {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.particles = [];
+        this.particleCount = 80;
+        this.connectionDistance = 150;
+        this.connectionDistanceSq = 150 * 150;
+
+        this.targetFPS = 60;
+        this.frameInterval = 1000 / this.targetFPS;
+        this.lastTime = performance.now();
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+
+        this.init();
+        this.animate();
+    }
+
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+    }
+
+    init() {
+        this.particles = [];
+        for (let i = 0; i < this.particleCount; i++) {
+            this.particles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                vx: (Math.random() - 0.5) * 30,
+                vy: (Math.random() - 0.5) * 30,
+                radius: Math.random() * 2 + 1
+            });
+        }
+    }
+
+    animate(currentTime = performance.now()) {
+        requestAnimationFrame((time) => this.animate(time));
+
+        const elapsed = currentTime - this.lastTime;
+        if (elapsed < this.frameInterval) return;
+
+        this.lastTime = currentTime - (elapsed % this.frameInterval);
+
+        const dt = Math.min(elapsed / 1000, 0.1);
+
+        const ctx = this.ctx;
+        const particles = this.particles;
+        const n = particles.length;
+        const connDistSq = this.connectionDistanceSq;
+        const connDist = this.connectionDistance;
+
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        for (let i = 0; i < n; i++) {
+            const p = particles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+        }
+
+        ctx.lineWidth = 1;
+        for (let i = 0; i < n; i++) {
+            const p = particles[i];
+            for (let j = i + 1; j < n; j++) {
+                const o = particles[j];
+                const dx = p.x - o.x;
+                const dy = p.y - o.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq < connDistSq) {
+                    const opacity = (1 - Math.sqrt(distSq) / connDist) * 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(o.x, o.y);
+                    ctx.strokeStyle = `rgba(0,168,255,${opacity})`;
+                    ctx.stroke();
+                }
+            }
+        }
+
+        ctx.fillStyle = 'rgba(0, 168, 255, 0.8)';
+        ctx.beginPath();
+        for (let i = 0; i < n; i++) {
+            const p = particles[i];
+            ctx.moveTo(p.x + p.radius, p.y);
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        }
+        ctx.fill();
+    }
+}
+
+new NetworkAnimation(document.getElementById('bg-canvas'));
+
+/* ═══════════════════════════════════════════
+   LOGIN FORM LOGIC
+═══════════════════════════════════════════ */
+
+async function handleLogin(event) {
+    event.preventDefault();
+
+    const passwordInput = document.getElementById('password');
+    const errorMsg = document.getElementById('password-error');
+    const loginBtn = document.getElementById('login-btn');
+    const spinner = document.getElementById('spinner');
+    const buttonText = document.getElementById('button-text');
+
+    const password = passwordInput.value.trim();
+
+    errorMsg.classList.remove('visible');
+    passwordInput.classList.remove('error');
+
+    if (!password) {
+        errorMsg.textContent = 'Password is required.';
+        errorMsg.classList.add('visible');
+        passwordInput.classList.add('error');
+        return;
+    }
+
+    loginBtn.disabled = true;
+    spinner.classList.add('visible');
+    buttonText.classList.add('hidden');
+
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            window.location.href = '/';
+        } else {
+            errorMsg.textContent = data.error || 'Invalid password.';
+            errorMsg.classList.add('visible');
+            passwordInput.classList.add('error');
+            passwordInput.focus();
+        }
+    } catch (error) {
+        errorMsg.textContent = 'Connection error. Please try again.';
+        errorMsg.classList.add('visible');
+        passwordInput.classList.add('error');
+    } finally {
+        loginBtn.disabled = false;
+        spinner.classList.remove('visible');
+        buttonText.classList.remove('hidden');
+    }
+}
+
+window.addEventListener('load', () => {
+    document.getElementById('password').focus();
+});
+
+document.getElementById('password').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('login-form').dispatchEvent(new Event('submit'));
+    }
+});
+</script>
+
+</body>
+</html>

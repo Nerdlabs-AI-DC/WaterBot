@@ -1,0 +1,14 @@
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/$(basename "${BASH_SOURCE[0]}")"
+SCRIPT_PATH="$(readlink -f "$SCRIPT_PATH")"
+SCRIPT_DIR="$( dirname "$SCRIPT_PATH" )"
+
+VENV_DIR="$SCRIPT_DIR/.venv"
+
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Error: Virtual environment not found at $VENV_DIR"
+    echo "Please run ./install.sh to create a virtual environment"
+    exit 1
+fi
+
+source "$VENV_DIR/bin/activate"
+python -m src.launcher "$@"

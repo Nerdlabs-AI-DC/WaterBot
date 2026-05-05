@@ -1,0 +1,3398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterBot</title>
+    <link rel="icon" type="image/png" href="assets/waterbot-small.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00a8ff;
+            --primary-glow: rgba(0, 168, 255, 0.5);
+            --secondary: #0088cc;
+            --success: #00d084;
+            --danger: #ff4757;
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(15, 20, 30, 0.85);
+            --bg-hover: rgba(20, 30, 45, 0.9);
+            --text: #e1e8f0;
+            --text-dim: #8b95a5;
+            --border: rgba(0, 168, 255, 0.2);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .top-bar-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .top-bar-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-link {
+            font-family: 'Rajdhani', sans-serif;
+            padding: 0.5rem 1.5rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-link:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-link.active {
+            color: var(--primary);
+            background: rgba(0, 168, 255, 0.1);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logout-dropdown-wrapper {
+            position: relative;
+        }
+
+        .logout-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            min-width: 200px;
+            padding: 0.35rem 0;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            opacity: 0;
+            transform: translateY(-8px);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            z-index: 1000;
+        }
+
+        .logout-menu.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .logout-menu button {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .logout-menu button:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .logout-menu .danger {
+            color: var(--danger);
+        }
+
+        .logout-divider {
+            height: 1px;
+            margin: 0.25rem 0;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Sort Dropdown */        .sort-menu {
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            min-width: 190px;
+            padding: 0.35rem 0;
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            opacity: 0;
+            transform: translateY(-8px);
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            z-index: 1100;
+        }
+
+        .sort-menu.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .sort-menu-label {
+            padding: 0.4rem 1rem 0.25rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+        }
+
+        .sort-menu button {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .sort-menu button:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sort-menu button.active {
+            color: var(--primary);
+        }
+
+        .sort-check {
+            opacity: 0;
+            font-size: 0.85rem;
+        }
+
+        .sort-menu button.active .sort-check {
+            opacity: 1;
+        }
+
+        .sort-divider {
+            height: 1px;
+            margin: 0.25rem 0;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .sort-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.7rem 1rem;
+            cursor: pointer;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: background 0.2s ease;
+        }
+
+        .sort-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sort-toggle-switch {
+            width: 32px;
+            height: 18px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .sort-toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .sort-toggle.on .sort-toggle-switch {
+            background: rgba(0, 168, 255, 0.25);
+            border-color: var(--primary);
+        }
+
+        .sort-toggle.on .sort-toggle-switch::after {
+            transform: translateX(14px);
+            background: var(--primary);
+        }
+
+        /* Animated Network Background */
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .searchable-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .searchable-select-wrapper input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .select-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .select-dropdown.active {
+            display: block;
+        }
+
+        .select-dropdown .select-option {
+            padding: 0.65rem 0.8rem;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .select-dropdown .select-option:hover {
+            background: rgba(0, 168, 255, 0.2);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            font-weight: 300;
+        }
+
+        /* Controls Bar */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px var(--primary-glow);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .btn-success {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-danger-dark {
+            background: rgba(15, 20, 30, 0.85);
+            border-color: var(--danger);
+        }
+
+        .btn-danger-dark:hover {
+            background: rgba(15, 20, 30, 0.85);
+            border-color: var(--danger);
+            box-shadow: 0 0 20px var(--danger);
+        }
+
+        .btn-warning {
+            background: rgba(255, 165, 0, 0.15);
+            border-color: rgba(255, 165, 0, 0.5);
+            color: #ffa500;
+        }
+
+        .btn-warning:hover {
+            background: rgba(255, 165, 0, 0.25);
+            border-color: #ffa500;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.3);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-icon {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border-radius: 50%;
+        }
+
+        .toast-container {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 2000;
+            pointer-events: none;
+            width: min(100%, 420px);
+            padding: 0 12px;
+        }
+
+        .toast {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.95rem 1rem;
+            border-radius: 14px;
+            background: rgba(18, 23, 35, 0.96);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: auto;
+            animation: toast-in 0.25s ease forwards;
+        }
+
+        .toast.hide {
+            animation: toast-out 0.25s ease forwards;
+        }
+
+        .toast .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+
+        .toast .toast-message {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .toast.success { border-color: rgba(0, 208, 132, 0.35); }
+        .toast.error { border-color: rgba(255, 71, 87, 0.35); }
+        .toast.warning { border-color: rgba(255, 165, 0, 0.35); }
+        .toast.info { border-color: rgba(0, 168, 255, 0.35); }
+
+        .toast-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            width: 100%;
+            margin-top: 0.75rem;
+        }
+
+        .toast-button {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 0.5rem 0.85rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .toast-button:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toast-out {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(10px); }
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Bot Card */
+        .bot-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bot-card.animate {
+            animation: fadeInUp 0.6s ease-out both;
+        }
+
+        .bot-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 30px rgba(0, 168, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .bot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bot-name {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .bot-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-running .status-dot {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-stopped .status-dot {
+            background: var(--text-dim);
+            animation: none;
+        }
+
+        .status-transitioning .status-dot {
+            background: #ffa500;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.7);
+            animation: pulse-transition 0.7s ease-in-out infinite;
+        }
+
+        .bot-info {
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .bot-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .bot-info-label {
+            color: var(--text-dim);
+        }
+
+        .bot-info-value {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .bot-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .bot-actions-top {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .bot-actions-bottom {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            backdrop-filter: blur(20px);
+            animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-content-tabbed {
+            max-width: 800px;
+            padding: 0;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .modal-sidebar {
+            width: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border-right: 1px solid var(--border);
+            padding: 2rem 0;
+        }
+
+        .modal-main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .tab-list {
+            list-style: none;
+        }
+
+        .tab-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-item:hover {
+            background: rgba(0, 168, 255, 0.1);
+            color: var(--text);
+        }
+
+        .tab-item.active {
+            background: rgba(0, 168, 255, 0.15);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .settings-empty {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-dim);
+        }
+
+        .settings-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .modal-header {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-dim);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: white;
+        }
+
+        .no-visual-effects .btn:hover,
+        .no-visual-effects .tab-link.active,
+        .no-visual-effects .tab-item.active,
+        .no-visual-effects .modal-content,
+        .no-visual-effects .settings-section {
+            box-shadow: none !important;
+        }
+
+        .no-visual-effects .btn,
+        .no-visual-effects .toggle-slider,
+        .no-visual-effects .toast,
+        .no-visual-effects .top-bar,
+        .no-visual-effects .sidebar {
+            transition: none !important;
+        }
+
+        .password-group {
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 168, 255, 0.15);
+            border-radius: 10px;
+            padding: 1.1rem 1.1rem 0.5rem;
+            background: rgba(0, 168, 255, 0.04);
+            position: relative;
+        }
+
+        .password-group-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.9rem;
+            opacity: 0.85;
+        }
+
+        .password-group .form-group {
+            margin-bottom: 0.9rem;
+        }
+
+        .password-group .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .password-group-divider {
+            height: 1px;
+            background: rgba(0, 168, 255, 0.12);
+            margin: 0.75rem 0;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        /* Logs Viewer */
+        .logs-container {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-time {
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+        /* Stats Styles */
+        .stats-tab-content {
+            display: none;
+        }
+
+        .stats-tab-content.active {
+            display: block;
+        }
+
+        .stats-tab-content h3 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .stat-unit {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes pulse-transition {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.4); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+
+        /* Stagger animation delays */
+        .bot-card:nth-child(1) { animation-delay: 0.1s; }
+        .bot-card:nth-child(2) { animation-delay: 0.2s; }
+        .bot-card:nth-child(3) { animation-delay: 0.3s; }
+        .bot-card:nth-child(4) { animation-delay: 0.4s; }
+        .bot-card:nth-child(5) { animation-delay: 0.5s; }
+        .bot-card:nth-child(6) { animation-delay: 0.6s; }
+
+        .bot-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            object-fit: cover;
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .bot-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 0;
+        }
+
+        .bot-name-group {
+            min-width: 0;
+        }
+
+        .bot-discord-username {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Token validation styles */
+        .token-validation-result {
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .token-validation-result.show { display: block; }
+
+        .token-validation-result.validating {
+            background: rgba(0, 168, 255, 0.1);
+            border: 1px solid rgba(0, 168, 255, 0.3);
+            color: var(--primary);
+        }
+
+        .token-validation-result.success {
+            background: rgba(0, 208, 132, 0.1);
+            border: 1px solid rgba(0, 208, 132, 0.4);
+            color: var(--success);
+        }
+
+        .token-validation-result.error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.4);
+            color: var(--danger);
+        }
+
+        .token-validation-result.warning {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            color: #ffa500;
+        }
+
+        .token-bot-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .token-bot-preview img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+        }
+
+        .token-bot-preview-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .intent-checks {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .intent-check-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .intent-check-item .icon { font-size: 1rem; }
+
+        /* Empty model warning banner on bot cards */
+        .model-warning-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            padding: 0.65rem 0.85rem;
+            margin-bottom: 0.75rem;
+            background: rgba(255, 165, 0, 0.08);
+            border: 1px solid rgba(255, 165, 0, 0.35);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #ffa500;
+            line-height: 1.4;
+        }
+
+        .model-warning-banner .warn-icon {
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .inline-icon {
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.125em;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+
+        .icon-spin {
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-icon .inline-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .warn-badge-icon {
+            width: 0.9em;
+            height: 0.9em;
+            vertical-align: -0.1em;
+        }
+
+        .site-footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 1.4rem 2rem;
+            border-top: 1px solid rgba(0, 168, 255, 0.1);
+            color: #8b95a5;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.8rem;
+        }
+
+        .site-footer a {
+            color: #00a8ff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .site-footer a:hover {
+            color: #00d4ff;
+        }
+
+        .site-footer .footer-sep {
+            margin: 0 0.6rem;
+            opacity: 0.3;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="top-bar-title">WaterBot</div>
+            <div class="top-bar-tabs">
+                <a href="#" class="tab-link active">Home</a>
+                <a href="docs.html" class="tab-link">Docs</a>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <button class="btn btn-icon" onclick="showGlobalSettings()" title="Settings"><img src="assets/cog.svg" alt="settings" class="inline-icon"></button>
+            <div class="logout-dropdown-wrapper">
+                <button class="btn btn-icon" onclick="toggleLogoutMenu(event)" title="Actions"><img src="assets/power.svg" alt="actions" class="inline-icon"></button>
+                <div id="logout-menu" class="logout-menu">
+                    <button type="button" onclick="handleLogout()"><img src="assets/log-out.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Log out</button>
+                    <button type="button" onclick="restartWaterBot()"><img src="assets/refresh-ccw.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Restart</button>
+                    <div class="logout-divider"></div>
+                    <button type="button" class="danger" onclick="shutdownWaterBot()"><img src="assets/power-danger.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Shut down</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="network-canvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <h1>My WaterBots</h1>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="showCreateModal()"><img src="assets/plus.svg" alt="refresh" class="inline-icon" style="margin-right:0.35rem;"> Create New Bot</button>
+            <button class="btn" onclick="refreshBots(true)"><img src="assets/refresh-ccw.svg" alt="refresh" class="inline-icon" style="margin-right:0.35rem;"> Refresh</button>
+            <button class="btn" id="sort-btn" onclick="toggleSortMenu(event)" title="Sort bots"><img src="assets/logs.svg" alt="sort" class="inline-icon" style="margin-right:0.35rem;"> Sort: <span id="sort-label">Last Online</span></button>
+        </div>
+
+        <div id="bots-grid" class="grid"></div>
+    </div>
+
+    <!-- Create Bot Modal -->
+    <div id="bot-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Create New Bot</div>
+            <form id="bot-form">
+                <div class="form-group">
+                    <label for="bot-name">Bot Name</label>
+                    <input type="text" id="bot-name" placeholder="my-awesome-bot" required>
+                    <div class="help-text">A unique identifier for your bot (lowercase, no spaces)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="display-name">Display Name</label>
+                    <input type="text" id="display-name" placeholder="Awesome Bot" required>
+                    <div class="help-text">The name that the bot listens to</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="system-message">System Message</label>
+                    <textarea id="system-message" placeholder="You are a chill Discord bot..." required></textarea>
+                    <div class="help-text">Instructions that define the bot's personality</div>
+                </div>
+
+                <div class="form-group" id="create-model-group" style="display:none;">
+                    <label for="create-ai-model">AI Model</label>
+                    <div class="searchable-select-wrapper">
+                        <input
+                            type="text"
+                            id="create-ai-model"
+                            placeholder="Click to select a model..."
+                            autocomplete="off"
+                            readonly
+                        >
+                        <div id="create-model-dropdown" class="select-dropdown"></div>
+                    </div>
+                    <div class="help-text" id="create-model-help">Only Ollama bots require manual model selection.</div>
+                </div>
+
+                <div class="form-group" id="create-embeddings-group" style="display:none;">
+                    <label for="create-embeddings-model">Embeddings Model</label>
+                    <div class="searchable-select-wrapper">
+                        <input
+                            type="text"
+                            id="create-embeddings-model"
+                            placeholder="Click to select an embeddings model..."
+                            autocomplete="off"
+                            readonly
+                        >
+                        <div id="create-embeddings-dropdown" class="select-dropdown"></div>
+                    </div>
+                    <div class="help-text">AI model used for internal text embedding</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Continue</button>
+                    <button type="button" class="btn" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Discord Token Modal -->
+    <div id="token-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Discord Bot Token</div>
+            <form id="token-form">
+                <div class="form-group">
+                    <label for="discord-token">Discord Token *</label>
+                    <input type="password" id="discord-token" placeholder="Your bot token from Discord Developer Portal" required>
+                    <div class="help-text">Get your bot token from <a href="https://discord.com/developers/applications" target="_blank" style="color: var(--primary);">Discord Developer Portal</a></div>
+                    <div id="token-validation-result" class="token-validation-result"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="create-bot-btn">Create Bot</button>
+                    <button type="button" class="btn" onclick="closeTokenModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><img src="assets/check.svg" alt="success" style="width:1rem;height:1rem;margin-right:0.5rem;"> Bot Created Successfully!</div>
+            <div style="margin: 1.5rem 0; text-align: center;">
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">Your bot "<span id="success-bot-name"></span>" has been created.</p>
+                <p style="color: var(--text-dim);">You can now configure additional settings or start using your bot.</p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="openBotSettings()"><img src="assets/cog.svg" alt="settings" class="inline-icon" style="margin-right:0.35rem;"> Open Settings</button>
+                <button type="button" class="btn" onclick="closeSuccessModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Settings Modal -->
+    <div id="global-modal" class="modal">
+        <div class="modal-content modal-content-tabbed">
+            <div class="modal-sidebar">
+                <ul class="tab-list">
+                    <li class="tab-item active" onclick="switchSettingsTab('app-settings')">App Settings</li>
+                    <li class="tab-item" onclick="switchSettingsTab('bot-settings')">Bot Settings</li>
+                </ul>
+            </div>
+            <div class="modal-main">
+                <!-- App Settings Tab -->
+                <div id="app-settings" class="tab-content active">
+                    <div class="modal-header">App Settings</div>
+                    <form id="app-settings-form">
+                        <div class="settings-section">
+
+                            <div class="form-group">
+                                <label>Auto-refresh</label>
+                                <div class="checkbox-wrapper">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="app-auto-refresh">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span class="help-text">Automatically refresh bots in the background</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Visual Effects</label>
+                                <div class="checkbox-wrapper">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="app-visual-effects">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span class="help-text">Toggle visual effects across the app</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="app-web-ui-port">Web UI Port</label>
+                                <input type="number" id="app-web-ui-port" min="1024" max="65535" placeholder="8221">
+                                <span class="help-text">Port for accessing the WaterBot dashboard (requires server restart)</span>
+                            </div>
+
+                            <div class="password-group">
+                                <div class="password-group-label">Change Password</div>
+                                <div class="form-group">
+                                    <label for="app-change-password">New Password</label>
+                                    <input type="password" id="app-change-password">
+                                    <span class="help-text">Leave blank if you don't want to change your password.</span>
+                                </div>
+                                <div class="password-group-divider"></div>
+                                <div class="form-group">
+                                    <label for="app-change-password-confirm">Confirm Password</label>
+                                    <input type="password" id="app-change-password-confirm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                            <button type="button" class="btn btn-danger-dark" onclick="resetAppSettings()">Reset Settings</button>
+                            <button type="button" class="btn" onclick="closeGlobalModal()">Close</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Bot Settings Tab -->
+                <div id="bot-settings" class="tab-content">
+                    <div class="modal-header">Bot Settings</div>
+                    <form id="global-form">
+                        <div class="form-group">
+                            <label for="global-provider">Default AI Provider</label>
+                            <div class="searchable-select-wrapper">
+                                <input
+                                    type="text"
+                                    id="global-provider"
+                                    placeholder="Click to select a provider..."
+                                    autocomplete="off"
+                                    readonly
+                                >
+                                <div id="global-provider-dropdown" class="select-dropdown"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label id="global-api-key-label" for="global-api-key">Provider API Key</label>
+                            <input type="password" id="global-api-key" placeholder="sk-...">
+                        </div>
+
+                        <div class="form-group" id="openai-endpoint-group" style="display: none;">
+                            <label for="openai-endpoint">OpenAI Base URL <span style="color:var(--text-dim);font-weight:400;font-size:0.8rem;text-transform:none;letter-spacing:normal;">(optional)</span></label>
+                            <input type="text" id="openai-endpoint" placeholder="https://api.openai.com/v1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discord-user-id">Discord User ID <span style="color:var(--text-dim);font-weight:400;font-size:0.8rem;text-transform:none;letter-spacing:normal;">(optional)</span></label>
+                            <input type="number" id="discord-user-id" placeholder="123456789" min="0" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                            <button type="button" class="btn" onclick="closeGlobalModal()">Close</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Modal -->
+    <div id="logs-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Bot Logs: <span id="logs-bot-name"></span></div>
+            <div class="logs-container" id="logs-content"></div>
+            <div class="form-actions">
+                <button type="button" class="btn" onclick="closeLogsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal">
+        <div class="modal-content modal-content-tabbed">
+            <div class="modal-sidebar">
+                <ul class="tab-list">
+                    <li class="tab-item" onclick="switchStatsTab('stats-overview')">Overview</li>
+                    <li class="tab-item" onclick="switchStatsTab('stats-growth')">Growth</li>
+                    <li class="tab-item" onclick="switchStatsTab('stats-engagement')">Engagement</li>
+                </ul>
+            </div>
+            <div class="modal-main">
+                <div class="modal-header">Bot Statistics: <span id="stats-bot-name"></span></div>
+                <div id="stats-overview" class="stats-tab-content" style="display: block;">
+                    <h3>System Status</h3>
+                    <div id="stats-system-content"></div>
+                </div>
+                <div id="stats-growth" class="stats-tab-content">
+                    <h3>Growth Metrics</h3>
+                    <div id="stats-growth-content"></div>
+                    <div style="position: relative; height: 300px; margin-top: 1rem;">
+                        <canvas id="stats-growth-chart"></canvas>
+                    </div>
+                </div>
+                <div id="stats-engagement" class="stats-tab-content">
+                    <h3>Engagement Statistics</h3>
+                    <div id="stats-engagement-content"></div>
+                    <div style="position: relative; height: 300px; margin-top: 1rem;">
+                        <canvas id="stats-engagement-chart"></canvas>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                    <button type="button" class="btn" onclick="closeStatsModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = window.location.origin;
+
+
+        // Authentication Check
+        (async function checkAuthentication() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/status`);
+                const data = await response.json();
+
+                if (data.password_setup && !data.authenticated) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking authentication:', error);
+                window.location.href = '/login.html';
+            }
+        })();
+
+        // Data Storage via API
+        const storage = {
+            async getBots(refreshMeta = false) {
+                const response = await fetch(`${API_BASE}/api/bots?refreshMeta=${refreshMeta}`);
+                return await response.json();
+            },
+            async getGlobalConfig() {
+                const response = await fetch(`${API_BASE}/api/global-config`);
+                return await response.json();
+            },
+            async saveGlobalConfig(config) {
+                const response = await fetch(`${API_BASE}/api/global-config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                return await response.json();
+            },
+            async createBot(botData) {
+                const response = await fetch(`${API_BASE}/api/bots`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(botData)
+                });
+                return await response.json();
+            },
+            async updateBot(botId, botData) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(botData)
+                });
+                return await response.json();
+            },
+            async deleteBot(botId) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}`, {
+                    method: 'DELETE'
+                });
+                return await response.json();
+            },
+            async startBot(botId) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}/start`, {
+                    method: 'POST'
+                });
+                return await response.json();
+            },
+            async stopBot(botId) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}/stop`, {
+                    method: 'POST'
+                });
+                return await response.json();
+            },
+            async restartBot(botId) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}/restart`, {
+                    method: 'POST'
+                });
+                return await response.json();
+            },
+            async getBotLogs(botId) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}/logs`);
+                return await response.json();
+            },
+            async getBotStats(botId) {
+                const response = await fetch(`${API_BASE}/api/bots/${botId}/stats`);
+                return await response.json();
+            },
+            async validateToken(token) {
+                const response = await fetch(`${API_BASE}/api/validate-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                return await response.json();
+            }
+        };
+
+        // Network Animation
+        class NetworkAnimation {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.particleCount = 80;
+                this.connectionDistance = 150;
+                this.connectionDistanceSq = 150 * 150;
+
+                this.targetFPS = 60;
+                this.frameInterval = 1000 / this.targetFPS;
+                this.lastTime = performance.now();
+
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+
+                this.init();
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                this.particles = [];
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 30,
+                        vy: (Math.random() - 0.5) * 30,
+                        radius: Math.random() * 2 + 1
+                    });
+                }
+            }
+
+            animate(currentTime = performance.now()) {
+                requestAnimationFrame((time) => this.animate(time));
+
+                const elapsed = currentTime - this.lastTime;
+                if (elapsed < this.frameInterval) return;
+
+                this.lastTime = currentTime - (elapsed % this.frameInterval);
+
+                const dt = Math.min(elapsed / 1000, 0.1);
+
+                const ctx = this.ctx;
+                const particles = this.particles;
+                const n = particles.length;
+                const connDistSq = this.connectionDistanceSq;
+                const connDist = this.connectionDistance;
+
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+                }
+
+                ctx.lineWidth = 1;
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    for (let j = i + 1; j < n; j++) {
+                        const o = particles[j];
+                        const dx = p.x - o.x;
+                        const dy = p.y - o.y;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq < connDistSq) {
+                            const opacity = (1 - Math.sqrt(distSq) / connDist) * 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(o.x, o.y);
+                            ctx.strokeStyle = `rgba(0,168,255,${opacity})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                ctx.fillStyle = 'rgba(0, 168, 255, 0.8)';
+                ctx.beginPath();
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    ctx.moveTo(p.x + p.radius, p.y);
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                }
+                ctx.fill();
+            }
+        }
+
+        // Initialize network animation
+        const canvas = document.getElementById('network-canvas');
+        new NetworkAnimation(canvas);
+
+        // Bot Management Functions
+
+        // Sort state
+        let sortField = 'lastOnline';
+        let sortInverted = false;
+
+        const sortFieldLabels = {
+            name: 'Name',
+            lastOnline: 'Last Online',
+            discordGuildCount: 'Servers',
+            users: 'Users'
+        };
+
+        function getSortedBots(bots) {
+            const sorted = [...bots].sort((a, b) => {
+                let valA, valB;
+                if (sortField === 'name') {
+                    valA = (a.displayName || a.name || '').toLowerCase();
+                    valB = (b.displayName || b.name || '').toLowerCase();
+                    return valA.localeCompare(valB);
+                } else if (sortField === 'lastOnline') {
+                    valA = a.lastOnline ? new Date(a.lastOnline).getTime() : 0;
+                    valB = b.lastOnline ? new Date(b.lastOnline).getTime() : 0;
+                } else {
+                    valA = a[sortField] ?? -1;
+                    valB = b[sortField] ?? -1;
+                }
+                return valB - valA;
+            });
+            return sortInverted ? sorted.reverse() : sorted;
+        }
+
+        function updateSortMenu() {
+            const menu = document.getElementById('sort-menu');
+            if (!menu) return;
+            const buttons = menu.querySelectorAll('button[onclick^="setSortField"]');
+            const fields = ['name', 'lastOnline', 'discordGuildCount', 'users'];
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('active', fields[i] === sortField);
+            });
+            const toggleEl = document.getElementById('sort-invert-toggle');
+            if (toggleEl) toggleEl.classList.toggle('on', sortInverted);
+            const labelEl = document.getElementById('sort-label');
+            if (labelEl) labelEl.textContent = sortFieldLabels[sortField] || sortField;
+        }
+
+        function setSortField(field) {
+            sortField = field;
+            updateSortMenu();
+            renderBots();
+        }
+
+        function toggleSortInvert() {
+            sortInverted = !sortInverted;
+            updateSortMenu();
+            renderBots();
+        }
+
+        function toggleSortMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('sort-menu');
+            const btn = document.getElementById('sort-btn');
+            const rect = btn.getBoundingClientRect();
+            menu.style.top = (rect.bottom + 8) + 'px';
+            menu.style.left = rect.left + 'px';
+            menu.classList.toggle('visible');
+        }
+
+        function hideSortMenu() {
+            const menu = document.getElementById('sort-menu');
+            if (menu) menu.classList.remove('visible');
+        }
+
+        async function renderBots(shouldAnimate = false, refreshMeta = false) {
+            const grid = document.getElementById('bots-grid');
+            
+            try {
+                const bots = await storage.getBots(refreshMeta);
+                
+                if (bots.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <div class="empty-icon">:(</div>
+                            <div class="empty-text">No bots created yet</div>
+                            <button class="btn btn-primary" onclick="showCreateModal()">Create Your First Bot</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const animateClass = shouldAnimate ? 'animate' : '';
+                grid.innerHTML = getSortedBots(bots).map(bot => {
+                    const avatarHtml = bot.discordAvatarUrl
+                        ? `<img class="bot-avatar" src="${bot.discordAvatarUrl}" alt="avatar" onerror="this.style.display='none'">`
+                        : `<div class="bot-avatar" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem;"><img src="assets/bot.svg" alt="bot" style="width:1.4rem;height:1.4rem;"></div>`;
+
+                    const discordUserHtml = bot.discordUsername
+                        ? `<div class="bot-discord-username">@${bot.discordUsername}</div>` : '';
+
+                    const guildCountHtml = bot.discordGuildCount !== null && bot.discordGuildCount !== undefined
+                        ? `<div class="bot-info-row">
+                            <span class="bot-info-label">Servers:</span>
+                            <span class="bot-info-value">${bot.discordGuildCount}</span>
+                           </div>` : '';
+
+                    const usersHtml = bot.users !== null && bot.users !== undefined
+                        ? `<div class="bot-info-row">
+                            <span class="bot-info-label">Users:</span>
+                            <span class="bot-info-value">${bot.users}</span>
+                           </div>` : '';
+
+                    const transState = transitioningBots.get(bot.id);
+                    const statusClass = transState ? 'status-transitioning' : (bot.running ? 'status-running' : 'status-stopped');
+                    const statusLabel = transState === 'stopping' ? 'Shutting down...' : transState === 'restarting' ? 'Restarting...' : (bot.running ? 'Online' : 'Offline');
+                    const inTransition = !!transState;
+
+                    const missingModels = [];
+                    if (!bot.aiModel) missingModels.push('AI Model');
+                    if (!bot.embeddingsModel) missingModels.push('Embeddings Model');
+                    const hasEmptyModels = missingModels.length > 0;
+
+                    const modelWarningHtml = hasEmptyModels ? `
+                        <div class="model-warning-banner">
+                            <span class="warn-icon"><img src="assets/triangle-alert.svg" alt="warning" style="width:1rem;height:1rem;"></span>
+                            <span><strong>Settings required:</strong> ${missingModels.join(' and ')} ${missingModels.length > 1 ? 'are' : 'is'} not configured. <a href="bot-settings.html?id=${bot.id}" style="color:#ffa500;text-decoration:underline;">Open settings</a> to fix this before starting the bot.</span>
+                        </div>` : '';
+
+                    return `
+                    <div class="bot-card ${animateClass}">
+                        <div class="bot-header">
+                            <div class="bot-header-left">
+                                ${avatarHtml}
+                                <div class="bot-name-group">
+                                    <div class="bot-name">${bot.displayName || bot.name}</div>
+                                    ${discordUserHtml}
+                                </div>
+                            </div>
+                            <div class="bot-status ${statusClass}">
+                                <span class="status-dot"></span>
+                                ${statusLabel}
+                            </div>
+                        </div>
+                        
+                        <div class="bot-info">
+                            <div class="bot-info-row">
+                                <span class="bot-info-label">ID:</span>
+                                <span class="bot-info-value">${bot.name}</span>
+                            </div>
+                            ${guildCountHtml}
+                            ${usersHtml}
+                        </div>
+
+                        ${bot.running && bot.stats ? `
+                            <div class="stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">${bot.stats.cpu}%</div>
+                                    <div class="stat-label">CPU</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${bot.stats.memory} MB</div>
+                                    <div class="stat-label">Memory</div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${modelWarningHtml}
+
+                        <div class="bot-actions">
+                            <div class="bot-actions-top">
+                                ${bot.running ? 
+                                    `<button class="btn btn-danger btn-small" onclick="stopBot('${bot.id}')" ${inTransition ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}><img src="assets/power.svg" alt="stop" class="inline-icon" style="margin-right:0.35rem;"> Stop</button>
+                                     <button class="btn btn-small" onclick="restartBot('${bot.id}')" ${inTransition ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}><img src="assets/refresh-ccw.svg" alt="restart" class="inline-icon" style="margin-right:0.35rem;"> Restart</button>` :
+                                    `<button class="btn btn-success btn-small" onclick="startBot('${bot.id}')" ${inTransition || hasEmptyModels ? `disabled style="opacity:0.5;cursor:not-allowed;" title="${hasEmptyModels ? 'Configure missing models in Settings first' : ''}"` : ''}><img src="assets/power.svg" alt="start" class="inline-icon" style="margin-right:0.35rem;"> Start</button>`
+                                }
+                            </div>
+                            <div class="bot-actions-bottom">
+                                <button class="btn btn-small" onclick="window.location.href='bot-settings.html?id=${bot.id}'"><img src="assets/cog.svg" alt="settings" class="inline-icon" style="margin-right:0.35rem;"> Settings</button>
+                                <button class="btn btn-small" onclick="showLogs('${bot.id}')"><img src="assets/logs.svg" alt="logs" style="width:1rem;height:1rem;margin-right:0.5rem;"> Logs</button>
+                                <button class="btn btn-danger-dark btn-small" onclick="deleteBot('${bot.id}')"><img src="assets/trash.svg" alt="delete" class="inline-icon" style="margin-right:0.35rem;"> Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+            } catch (error) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-icon"><img src="assets/triangle-alert.svg" alt="warning" style="width:4rem;height:4rem;"></div>
+                        <div class="empty-text">Error loading bots: ${error.message}</div>
+                        <button class="btn btn-primary" onclick="refreshBots()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        let currentCreateProvider = 'openai';
+        let createAIModels = [];
+        let createModelsFetchState = 'idle';
+        let createModelsFetchError = '';
+        let createModelSearchQuery = '';
+
+        // Embeddings model for create modal (shares the same model list as AI model when Ollama)
+        let createEmbSearchQuery = '';
+
+        function initCreateModelSelect() {
+            const input = document.getElementById('create-ai-model');
+            const dropdown = document.getElementById('create-model-dropdown');
+
+            const openDropdown = () => {
+                createModelSearchQuery = '';
+                if (createModelsFetchState === 'idle') {
+                    fetchCreateModels();
+                } else {
+                    showCreateModelDropdown('');
+                }
+            };
+
+            input.addEventListener('focus', openDropdown);
+            input.addEventListener('click', openDropdown);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('active');
+                    createModelSearchQuery = '';
+                } else if (e.key.length === 1 || e.key === 'Backspace') {
+                    e.preventDefault();
+                    if (e.key === 'Backspace') {
+                        createModelSearchQuery = createModelSearchQuery.slice(0, -1);
+                    } else {
+                        createModelSearchQuery += e.key;
+                    }
+                    showCreateModelDropdown(createModelSearchQuery);
+                }
+            });
+
+            // Embeddings model select (reuses createAIModels list for Ollama)
+            const embInput = document.getElementById('create-embeddings-model');
+            const embDropdown = document.getElementById('create-embeddings-dropdown');
+
+            const openEmbDropdown = () => {
+                createEmbSearchQuery = '';
+                if (createModelsFetchState === 'idle') {
+                    fetchCreateModels();
+                } else {
+                    showCreateEmbDropdown('');
+                }
+            };
+
+            embInput.addEventListener('focus', openEmbDropdown);
+            embInput.addEventListener('click', openEmbDropdown);
+
+            embInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    embDropdown.classList.remove('active');
+                    createEmbSearchQuery = '';
+                } else if (e.key.length === 1 || e.key === 'Backspace') {
+                    e.preventDefault();
+                    if (e.key === 'Backspace') {
+                        createEmbSearchQuery = createEmbSearchQuery.slice(0, -1);
+                    } else {
+                        createEmbSearchQuery += e.key;
+                    }
+                    showCreateEmbDropdown(createEmbSearchQuery);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.searchable-select-wrapper')) {
+                    dropdown.classList.remove('active');
+                    embDropdown.classList.remove('active');
+                    createModelSearchQuery = '';
+                    createEmbSearchQuery = '';
+                }
+            });
+        }
+
+        function showCreateEmbDropdown(filter) {
+            const dropdown = document.getElementById('create-embeddings-dropdown');
+            const currentValue = document.getElementById('create-embeddings-model').value;
+
+            if (createModelsFetchState === 'loading') {
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--text-dim);cursor:default;"><img src="assets/refresh-ccw.svg" alt="loading" class="inline-icon icon-spin" style="margin-right:0.4rem;"> Loading models...</div>`;
+                dropdown.classList.add('active');
+                return;
+            }
+
+            if (createModelsFetchState === 'error') {
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--danger);cursor:default;"><img src="assets/x.svg" alt="error" class="inline-icon" style="margin-right:0.5rem;"> ${createModelsFetchError}</div>`;
+                dropdown.classList.add('active');
+                return;
+            }
+
+            const filtered = createAIModels.filter(model => model.toLowerCase().includes((filter || '').toLowerCase()));
+            if (filtered.length === 0) {
+                const msg = filter ? `No models matching "${filter}"` : (createAIModels.length === 0 ? 'No models available' : 'No matches');
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--text-dim);cursor:default;">${msg}</div>`;
+            } else {
+                dropdown.innerHTML = filtered.map(model => `
+                    <div class="select-option ${model === currentValue ? 'selected' : ''}" onclick="selectCreateEmbModel('${model.replace(/'/g, "\\'")}')">
+                        ${model}
+                    </div>
+                `).join('');
+            }
+
+            dropdown.classList.add('active');
+        }
+
+        function selectCreateEmbModel(model) {
+            document.getElementById('create-embeddings-model').value = model;
+            document.getElementById('create-embeddings-dropdown').classList.remove('active');
+            createEmbSearchQuery = '';
+        }
+
+        async function fetchCreateModels() {
+            createModelsFetchState = 'loading';
+            createModelsFetchError = '';
+            createAIModels = [];
+            showCreateModelDropdown('');
+            const embDd = document.getElementById('create-embeddings-dropdown');
+            if (embDd && embDd.classList.contains('active')) showCreateEmbDropdown('');
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/models`);
+                const data = await resp.json();
+
+                if (data.error) {
+                    createModelsFetchState = 'error';
+                    createModelsFetchError = data.error;
+                } else {
+                    createAIModels = data.models || [];
+                    createModelsFetchState = 'loaded';
+                }
+            } catch (err) {
+                createModelsFetchState = 'error';
+                createModelsFetchError = err.message;
+            }
+
+            showCreateModelDropdown(createModelSearchQuery);
+            if (embDd && embDd.classList.contains('active')) showCreateEmbDropdown(createEmbSearchQuery);
+        }
+
+        function showCreateModelDropdown(filter) {
+            const dropdown = document.getElementById('create-model-dropdown');
+            const currentValue = document.getElementById('create-ai-model').value;
+
+            if (createModelsFetchState === 'loading') {
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--text-dim);cursor:default;"><img src="assets/refresh-ccw.svg" alt="loading" class="inline-icon icon-spin" style="margin-right:0.4rem;"> Loading models...</div>`;
+                dropdown.classList.add('active');
+                return;
+            }
+
+            if (createModelsFetchState === 'error') {
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--danger);cursor:default;"><img src="assets/x.svg" alt="error" class="inline-icon" style="margin-right:0.5rem;"> ${createModelsFetchError}</div>`;
+                dropdown.classList.add('active');
+                return;
+            }
+
+            const filtered = createAIModels.filter(model => model.toLowerCase().includes((filter || '').toLowerCase()));
+            if (filtered.length === 0) {
+                const msg = filter ? `No models matching "${filter}"` : (createAIModels.length === 0 ? 'No models available' : 'No matches');
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--text-dim);cursor:default;">${msg}</div>`;
+            } else {
+                dropdown.innerHTML = filtered.map(model => `
+                    <div class="select-option ${model === currentValue ? 'selected' : ''}" onclick="selectCreateModel('${model.replace(/'/g, "\\'")}')">
+                        ${model}
+                    </div>
+                `).join('');
+            }
+
+            dropdown.classList.add('active');
+        }
+
+        function selectCreateModel(model) {
+            document.getElementById('create-ai-model').value = model;
+            document.getElementById('create-model-dropdown').classList.remove('active');
+            createModelSearchQuery = '';
+        }
+
+        async function resolveCreateModelForProvider(provider) {
+            const modelField = document.getElementById('create-ai-model');
+            const group = document.getElementById('create-model-group');
+            const help = document.getElementById('create-model-help');
+            const required = document.getElementById('create-model-required');
+            const embGroup = document.getElementById('create-embeddings-group');
+            const embField = document.getElementById('create-embeddings-model');
+
+            provider = (provider || 'openai').toLowerCase();
+            currentCreateProvider = provider;
+
+            if (provider === 'ollama') {
+                group.style.display = 'block';
+                modelField.value = '';
+                modelField.placeholder = 'Click to select a model...';
+                modelField.readOnly = false;
+                help.textContent = 'The AI model to use for responses';
+                modelField.required = true;
+
+                embGroup.style.display = 'block';
+                embField.value = '';
+                embField.required = true;
+
+                if (createModelsFetchState === 'idle') {
+                    await fetchCreateModels();
+                }
+            } else {
+                group.style.display = 'none';
+                modelField.value = '';
+                modelField.readOnly = true;
+                modelField.required = false;
+                required.textContent = '';
+                help.textContent = 'Model is auto-assigned for this provider.';
+
+                embGroup.style.display = 'none';
+                embField.value = '';
+                embField.required = false;
+            }
+        }
+
+        async function showCreateModal() {
+            document.getElementById('bot-form').reset();
+            document.getElementById('bot-modal').classList.add('active');
+
+            try {
+                const config = await storage.getGlobalConfig();
+                const provider = (config.ai_provider || 'openai').toLowerCase();
+                await resolveCreateModelForProvider(provider);
+            } catch (err) {
+                await resolveCreateModelForProvider('openai');
+            }
+        }
+
+        function closeCreateModal() {
+            document.getElementById('bot-modal').classList.remove('active');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('token-modal').classList.remove('active');
+            clearTokenValidation();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.remove('active');
+            renderBots(true);
+        }
+
+        let newBotId = null;
+
+        function openBotSettings() {
+            if (newBotId) {
+                window.location.href = `bot-settings.html?id=${newBotId}`;
+            }
+        }
+
+        document.getElementById('bot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Validate required fields
+            const botName = document.getElementById('bot-name').value.trim();
+            const displayName = document.getElementById('display-name').value.trim();
+            const systemMessage = document.getElementById('system-message').value.trim();
+
+            if (!botName || !displayName || !systemMessage) {
+                showToast('Please fill in all required fields', 'warning');
+                return;
+            }
+
+            // Close create modal and show token modal
+            closeCreateModal();
+            document.getElementById('token-modal').classList.add('active');
+        });
+
+        // Token validation helpers
+        let tokenValidationResult = null;
+        let hasIntentIssues = true; // Assume issues until validated
+
+        function showTokenValidation(state, html) {
+            const el = document.getElementById('token-validation-result');
+            el.className = `token-validation-result show ${state}`;
+            el.innerHTML = html;
+        }
+
+        function clearTokenValidation() {
+            tokenValidationResult = null;
+            const el = document.getElementById('token-validation-result');
+            el.className = 'token-validation-result';
+            el.innerHTML = '';
+        }
+
+        // Reset validation when token field changes
+        document.getElementById('discord-token').addEventListener('input', () => {
+            clearTokenValidation();
+        });
+
+        document.getElementById('token-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const discordToken = document.getElementById('discord-token').value.trim();
+            if (!discordToken) {
+                showToast('Please enter your Discord bot token', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('create-bot-btn');
+
+            // If not yet validated, validate first
+            if (!tokenValidationResult || hasIntentIssues) {
+                btn.disabled = true;
+                btn.textContent = 'Validating...';
+
+                showTokenValidation('validating', 'Validating token...');
+
+                try {
+                    tokenValidationResult = await storage.validateToken(discordToken);
+                } catch (err) {
+                    tokenValidationResult = { valid: false, error: err.message };
+                }
+
+                btn.disabled = false;
+                btn.textContent = 'Create Bot';
+
+                if (!tokenValidationResult.valid) {
+                    showTokenValidation('error', `<img src="assets/x.svg" alt="error" class="inline-icon" style="margin-right:0.5rem;"> ${tokenValidationResult.error || 'Invalid token'}`);
+                    return;
+                }
+
+                // Build result UI
+                const info = tokenValidationResult;
+                const avatarHtml = info.avatar_url
+                    ? `<img src="${info.avatar_url}" alt="avatar">` : '';
+                const membersOk = info.members_intent !== false;
+                const msgOk = info.message_content_intent !== false;
+                const intentWarnings = (!membersOk || !msgOk)
+                    ? `<div class="intent-checks">
+                        <div class="intent-check-item">
+                            <span class="icon">${membersOk ? '<img src="assets/check.svg" alt="check" style="width:1rem;height:1rem;">' : '<img src="assets/x.svg" alt="error" style="width:1rem;height:1rem;">'}</span>
+                            Server Members Intent
+                        </div>
+                        <div class="intent-check-item">
+                            <span class="icon">${msgOk ? '<img src="assets/check.svg" alt="check" style="width:1rem;height:1rem;">' : '<img src="assets/x.svg" alt="error" style="width:1rem;height:1rem;">'}</span>
+                            Message Content Intent
+                        </div>
+                       </div>` : '';
+
+                const hasIntentIssues = !membersOk || !msgOk;
+
+                if (hasIntentIssues) {
+                    showTokenValidation('warning',
+                        `<div class="token-bot-preview">
+                            ${avatarHtml}
+                            <div>
+                                <div class="token-bot-preview-name">${info.username}</div>
+                                <div style="font-size:0.8rem;color:var(--text-dim)">${info.guild_count != null ? info.guild_count + ' servers' : ''}</div>
+                            </div>
+                         </div>
+                         ${intentWarnings}
+                         <div style="margin-top:0.5rem;font-size:0.85rem;">Required intents are not enabled. Please enable them under "Privileged Gateway Intents" in the Discord Developer Portal.</div>`
+                    );
+                    return;
+                }
+            }
+
+            const aiModel = document.getElementById('create-ai-model').value.trim();
+            const embeddingsModel = document.getElementById('create-embeddings-model').value.trim();
+
+            if (currentCreateProvider === 'ollama' && !aiModel) {
+                showToast('Please select an Ollama model before creating the bot.', 'warning');
+                return;
+            }
+
+            if (currentCreateProvider === 'ollama' && !embeddingsModel) {
+                showToast('Please select an embeddings model before creating the bot.', 'warning');
+                return;
+            }
+
+            let resolvedModel = '';
+            if (currentCreateProvider === 'ollama') {
+                resolvedModel = aiModel;
+            }
+
+            const botData = {
+                name: document.getElementById('bot-name').value,
+                displayName: document.getElementById('display-name').value,
+                systemMessage: document.getElementById('system-message').value,
+                discordToken: discordToken,
+                aiModel: resolvedModel,
+                cheapModel: '',
+                imageModel: '',
+                embeddingsModel: currentCreateProvider === 'ollama' ? embeddingsModel : '',
+                autostart: false,
+                knowledge: [],
+                naturalRepliesEnabled: true,
+                naturalRepliesFrequency: 180,
+                contextSize: 10,
+                memoryLimit: 500,
+                memoryTopK: 3,
+                knowledgeTopK: 3,
+                rateLimit: 10,
+                debugMode: false
+            };
+
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Creating...';
+                const result = await storage.createBot(botData);
+                btn.disabled = false;
+                btn.textContent = 'Create Bot';
+
+                if (result.error) {
+                    showToast('Error: ' + result.error, 'error');
+                }
+
+                newBotId = result.name || botData.name;
+                clearTokenValidation();
+                closeTokenModal();
+                document.getElementById('success-bot-name').textContent = botData.displayName;
+                document.getElementById('success-modal').classList.add('active');
+
+                document.getElementById('bot-form').reset();
+                document.getElementById('token-form').reset();
+            } catch (error) {
+                btn.disabled = false;
+                btn.textContent = 'Create Bot';
+                showToast('Error creating bot: ' + error.message, 'error');
+            }
+        });
+
+        const transitioningBots = new Map();
+
+        async function startBot(id) {
+            try {
+                const result = await storage.startBot(id);
+                if (result.error) {
+                    showToast('Error starting bot: ' + result.error, 'error');
+                } else {
+                    await renderBots();
+                }
+            } catch (error) {
+                showToast('Error starting bot: ' + error.message, 'error');
+            }
+        }
+
+        async function stopBot(id) {
+            transitioningBots.set(id, 'stopping');
+            await renderBots();
+            try {
+                const result = await storage.stopBot(id);
+                if (result.error) {
+                    showToast('Error stopping bot: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error stopping bot: ' + error.message, 'error');
+            } finally {
+                transitioningBots.delete(id);
+                await renderBots();
+            }
+        }
+
+        async function restartBot(id) {
+            transitioningBots.set(id, 'restarting');
+            await renderBots();
+            try {
+                const result = await storage.restartBot(id);
+                if (result.error) {
+                    showToast('Error restarting bot: ' + result.error, 'error');
+                } else {
+                    showToast('Bot restarted successfully.', 'success');
+                }
+            } catch (error) {
+                showToast('Error restarting bot: ' + error.message, 'error');
+            } finally {
+                transitioningBots.delete(id);
+                await renderBots();
+            }
+        }
+
+        function showToast(message, type = 'info', duration = 3500, actionText, actionCallback) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const iconMap = {
+                success: '<img src="assets/check.svg" alt="success" style="width:1rem;height:1rem;">',
+                error: '<img src="assets/x.svg" alt="error" style="width:1rem;height:1rem;">',
+                warning: '<img src="assets/triangle-alert.svg" alt="warning" style="width:1rem;height:1rem;">',
+                info: '<img src="assets/info.svg" alt="info" style="width:1rem;height:1rem;">'
+            };
+            toast.innerHTML = `
+                <div class="toast-icon">${iconMap[type] || iconMap.info}</div>
+                <div>
+                    <div class="toast-message">${message}</div>
+                    ${actionText ? `<div class="toast-actions"><button class="toast-button" type="button">${actionText}</button></div>` : ''}
+                </div>
+            `;
+
+            if (actionText && actionCallback) {
+                toast.querySelector('.toast-button').addEventListener('click', () => {
+                    actionCallback();
+                    toast.classList.add('hide');
+                });
+            }
+
+            container.appendChild(toast);
+            const removeToast = () => {
+                if (toast.classList.contains('hide')) return;
+                toast.classList.add('hide');
+                toast.addEventListener('animationend', () => toast.remove(), { once: true });
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            const timeout = actionText ? 8000 : duration;
+            const timer = setTimeout(removeToast, timeout);
+            toast.addEventListener('mouseenter', () => clearTimeout(timer));
+            toast.addEventListener('mouseleave', () => setTimeout(removeToast, 2000));
+        }
+
+        function showConfirmToast(message, onConfirm) {
+            showToast(message, 'warning', 8000, 'Delete', onConfirm);
+        }
+
+        async function deleteBotConfirmed(id) {
+            try {
+                const result = await storage.deleteBot(id);
+                if (result.error) {
+                    showToast('Error deleting bot: ' + result.error, 'error');
+                } else {
+                    await renderBots();
+                }
+            } catch (error) {
+                showToast('Error deleting bot: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteBot(id) {
+            showConfirmToast('Are you sure you want to delete this bot?', async () => await deleteBotConfirmed(id));
+        }
+
+        async function showLogs(id) {
+            try {
+                const bots = await storage.getBots();
+                const bot = bots.find(b => b.id === id);
+                if (!bot) return;
+
+                document.getElementById('logs-bot-name').textContent = bot.name;
+                const logsContent = document.getElementById('logs-content');
+                logsContent.innerHTML = '<div style="text-align: center; padding: 2rem;">Loading logs...</div>';
+                
+                document.getElementById('logs-modal').classList.add('active');
+
+                const result = await storage.getBotLogs(id);
+                
+                if (result.error) {
+                    logsContent.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--danger);">Error: ${result.error}</div>`;
+                } else if (!result.logs || result.logs.length === 0) {
+                    logsContent.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-dim);">No logs available</div>';
+                } else {
+                    logsContent.innerHTML = result.logs.map(log => 
+                        `<div class="log-entry">${log}</div>`
+                    ).join('');
+                    logsContent.scrollTop = logsContent.scrollHeight;
+                }
+            } catch (error) {
+                showToast('Error loading logs: ' + error.message, 'error');
+            }
+        }
+
+        function closeLogsModal() {
+            document.getElementById('logs-modal').classList.remove('active');
+        }
+
+        let statsCharts = {};
+
+        async function showStats(id) {
+            try {
+                const bots = await storage.getBots();
+                const bot = bots.find(b => b.id === id);
+                if (!bot) return;
+
+                document.getElementById('stats-bot-name').textContent = bot.name;
+                document.getElementById('stats-modal').classList.add('active');
+
+                const stats = await storage.getBotStats(id);
+
+                if (stats.error) {
+                    showToast('Error loading stats: ' + stats.error, 'error');
+                    return;
+                }
+
+                document.querySelectorAll('.stats-tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                    tab.style.display = 'none';
+                });
+                const statsModal = document.getElementById('stats-modal');
+                statsModal.querySelectorAll('.tab-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+
+                document.getElementById('stats-overview').classList.add('active');
+                document.getElementById('stats-overview').style.display = 'block';
+                const firstTabItem = statsModal.querySelector('.tab-item');
+                if (firstTabItem) firstTabItem.classList.add('active');
+
+                renderStatsOverview(stats);
+                renderStatsGrowth(stats);
+                renderStatsEngagement(stats);
+            } catch (error) {
+                showToast('Error loading stats: ' + error.message, 'error');
+            }
+        }
+
+        function switchStatsTab(tabId) {
+            document.querySelectorAll('.stats-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none';
+            });
+            const statsModal = document.getElementById('stats-modal');
+            statsModal.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+                selectedTab.style.display = 'block';
+
+                const tabItems = statsModal.querySelectorAll('.tab-item');
+                tabItems.forEach((item, index) => {
+                    const tabIds = ['stats-overview', 'stats-growth', 'stats-engagement'];
+                    if (tabIds[index] === tabId) {
+                        item.classList.add('active');
+                    }
+                });
+
+                if (tabId === 'stats-growth' && statsCharts.growth) {
+                    setTimeout(() => statsCharts.growth?.resize(), 150);
+                } else if (tabId === 'stats-engagement' && statsCharts.engagement) {
+                    setTimeout(() => statsCharts.engagement?.resize(), 150);
+                }
+            }
+        }
+
+        function renderStatsOverview(stats) {
+            const content = document.getElementById('stats-system-content');
+            const systemStats = stats.system || {};
+
+            if (!systemStats.cpu) {
+                content.innerHTML = '<div style="color: var(--text-dim); text-align: center; padding: 2rem;">Bot is not running. System stats unavailable.</div>';
+                return;
+            }
+
+            content.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">CPU Usage</div>
+                        <div class="stat-value">${systemStats.cpu}<span class="stat-unit">%</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Memory Usage</div>
+                        <div class="stat-value">${systemStats.memory_mb}<span class="stat-unit">MB</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">${systemStats.uptime_display}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function parseDailyData(dailyMessages) {
+            // daily_messages structure: { "YYYY-MM-DD": { "user_id": message_count, ... }, ... }
+            return Object.entries(dailyMessages)
+                .filter(([date]) => !String(date).startsWith('_'))
+                .sort(([a], [b]) => a.localeCompare(b))
+                .slice(-30)
+                .map(([date, userMap]) => {
+                    const userCount = Object.keys(userMap || {}).length;
+                    const msgCount = Object.values(userMap || {}).reduce((sum, v) => sum + (Number(v) || 0), 0);
+                    return { date, userCount, msgCount };
+                });
+        }
+
+        function formatChartDate(dateStr) {
+            // "YYYY-MM-DD" to "MM/DD"
+            const parts = dateStr.split('-');
+            return parts.length === 3 ? `${parts[1]}/${parts[2]}` : dateStr;
+        }
+
+        function renderStatsGrowth(stats) {
+            const content = document.getElementById('stats-growth-content');
+            const growthStats = stats.growth || {};
+            const dailyMessages = growthStats.daily_messages || {};
+            const days = parseDailyData(dailyMessages);
+
+            content.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-value">${growthStats.user_count || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Messages</div>
+                        <div class="stat-value">${growthStats.message_count || 0}</div>
+                    </div>
+                </div>
+            `;
+
+            const canvas = document.getElementById('stats-growth-chart');
+            if (statsCharts.growth) { statsCharts.growth.destroy(); statsCharts.growth = null; }
+
+            if (days.length === 0) {
+                canvas.style.display = 'none';
+                const noData = canvas.parentElement.querySelector('.chart-no-data');
+                if (!noData) {
+                    const el = document.createElement('div');
+                    el.className = 'chart-no-data';
+                    el.style.cssText = 'color:var(--text-dim);text-align:center;padding:2rem;';
+                    el.textContent = 'No daily data available yet.';
+                    canvas.parentElement.appendChild(el);
+                }
+                return;
+            }
+
+            canvas.style.display = 'block';
+            canvas.parentElement.querySelectorAll('.chart-no-data').forEach(el => el.remove());
+
+            setTimeout(() => {
+                if (!canvas || typeof Chart === 'undefined') return;
+                if (statsCharts.growth) { statsCharts.growth.destroy(); }
+
+                statsCharts.growth = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: days.map(d => formatChartDate(d.date)),
+                        datasets: [
+                            {
+                                label: 'Active Users',
+                                data: days.map(d => d.userCount),
+                                borderColor: '#7289da',
+                                backgroundColor: 'rgba(114, 137, 218, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: days.length <= 14 ? 4 : 2,
+                                tension: 0.3,
+                                fill: true,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Messages',
+                                data: days.map(d => d.msgCount),
+                                borderColor: '#43b581',
+                                backgroundColor: 'rgba(67, 181, 129, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: days.length <= 14 ? 4 : 2,
+                                tension: 0.3,
+                                fill: true,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { labels: { color: '#dcddde', font: { size: 12 } } },
+                            tooltip: {
+                                callbacks: {
+                                    title: (items) => days[items[0].dataIndex]?.date || items[0].label
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                ticks: { color: '#7289da', precision: 0 },
+                                grid: { color: 'rgba(114, 137, 218, 0.1)' },
+                                title: { display: true, text: 'Users', color: '#7289da', font: { size: 11 } }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'right',
+                                beginAtZero: true,
+                                ticks: { color: '#43b581', precision: 0 },
+                                grid: { drawOnChartArea: false },
+                                title: { display: true, text: 'Messages', color: '#43b581', font: { size: 11 } }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#dcddde',
+                                    maxTicksLimit: 10,
+                                    maxRotation: 45
+                                },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            }
+                        }
+                    }
+                });
+            }, 50);
+        }
+
+        function renderStatsEngagement(stats) {
+            const content = document.getElementById('stats-engagement-content');
+            const engagementStats = stats.engagement || {};
+            const dailyMessages = engagementStats.daily_messages || stats.growth?.daily_messages || {};
+            const days = parseDailyData(dailyMessages);
+
+            content.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Messages/User (All Time)</div>
+                        <div class="stat-value">${engagementStats.avg_messages_per_user || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Messages/User (Today)</div>
+                        <div class="stat-value">${engagementStats.avg_daily_messages_latest || 0}</div>
+                    </div>
+                </div>
+            `;
+
+            const canvas = document.getElementById('stats-engagement-chart');
+            if (statsCharts.engagement) { statsCharts.engagement.destroy(); statsCharts.engagement = null; }
+
+            if (days.length === 0) {
+                canvas.style.display = 'none';
+                const noData = canvas.parentElement.querySelector('.chart-no-data');
+                if (!noData) {
+                    const el = document.createElement('div');
+                    el.className = 'chart-no-data';
+                    el.style.cssText = 'color:var(--text-dim);text-align:center;padding:2rem;';
+                    el.textContent = 'No daily data available yet.';
+                    canvas.parentElement.appendChild(el);
+                }
+                return;
+            }
+
+            canvas.style.display = 'block';
+            canvas.parentElement.querySelectorAll('.chart-no-data').forEach(el => el.remove());
+
+            // Compute daily avg messages per active user
+            const avgPerUser = days.map(d => d.userCount > 0 ? Math.round((d.msgCount / d.userCount) * 100) / 100 : 0);
+            const totalMsgs = days.map(d => d.msgCount);
+
+            setTimeout(() => {
+                if (!canvas || typeof Chart === 'undefined') return;
+                if (statsCharts.engagement) { statsCharts.engagement.destroy(); }
+
+                statsCharts.engagement = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: days.map(d => formatChartDate(d.date)),
+                        datasets: [
+                            {
+                                label: 'Total Messages',
+                                data: totalMsgs,
+                                backgroundColor: 'rgba(0, 168, 255, 0.55)',
+                                borderColor: '#00a8ff',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Avg Msgs/User',
+                                data: avgPerUser,
+                                type: 'line',
+                                borderColor: '#ffa500',
+                                backgroundColor: 'rgba(255, 165, 0, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: days.length <= 14 ? 4 : 2,
+                                tension: 0.3,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { labels: { color: '#dcddde', font: { size: 12 } } },
+                            tooltip: {
+                                callbacks: {
+                                    title: (items) => days[items[0].dataIndex]?.date || items[0].label
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                beginAtZero: true,
+                                ticks: { color: '#00a8ff', precision: 0 },
+                                grid: { color: 'rgba(0, 168, 255, 0.08)' },
+                                title: { display: true, text: 'Messages', color: '#00a8ff', font: { size: 11 } }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'right',
+                                beginAtZero: true,
+                                ticks: { color: '#ffa500' },
+                                grid: { drawOnChartArea: false },
+                                title: { display: true, text: 'Avg/User', color: '#ffa500', font: { size: 11 } }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#dcddde',
+                                    maxTicksLimit: 10,
+                                    maxRotation: 45
+                                },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            }
+                        }
+                    }
+                });
+            }, 50);
+        }
+
+        function closeStatsModal() {
+            document.getElementById('stats-modal').classList.remove('active');
+
+            Object.values(statsCharts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            statsCharts = {};
+        }
+
+        const globalProviderOptions = ['openai', 'openrouter', 'ollama'];
+        let globalProviderSearchQuery = '';
+        let globalConfigCache = {};
+        const DEFAULT_APP_SETTINGS = {
+            autoRefresh: true,
+            visualEffects: true,
+            web_ui_port: 8221
+        };
+        let appSettings = { ...DEFAULT_APP_SETTINGS };
+
+        function formatProviderLabel(provider) {
+            return provider === 'openai'
+                ? 'OpenAI'
+                : provider === 'openrouter'
+                    ? 'OpenRouter'
+                    : provider === 'ollama'
+                        ? 'Ollama'
+                        : provider.charAt(0).toUpperCase() + provider.slice(1);
+        }
+
+        function updateVisualEffects() {
+            const canvas = document.getElementById('network-canvas');
+            if (appSettings.visualEffects) {
+                document.body.classList.remove('no-visual-effects');
+                if (canvas) canvas.style.display = 'block';
+            } else {
+                document.body.classList.add('no-visual-effects');
+                if (canvas) canvas.style.display = 'none';
+            }
+        }
+
+        function getAppSettingsFromForm() {
+            return {
+                autoRefresh: document.getElementById('app-auto-refresh').checked,
+                visualEffects: document.getElementById('app-visual-effects').checked
+            };
+        }
+
+        function getWebUIPortFromForm() {
+            return parseInt(document.getElementById('app-web-ui-port').value) || 8221;
+        }
+
+        function applyAppSettings(config) {
+            const settings = { ...DEFAULT_APP_SETTINGS, ...(config && config.app_settings ? config.app_settings : {}), ...(config && config.web_ui_port ? { web_ui_port: config.web_ui_port } : {}) };
+            appSettings = settings;
+            document.getElementById('app-auto-refresh').checked = Boolean(settings.autoRefresh);
+            document.getElementById('app-visual-effects').checked = Boolean(settings.visualEffects);
+            document.getElementById('app-web-ui-port').value = settings.web_ui_port || 8221;
+            document.getElementById('app-change-password').value = '';
+            document.getElementById('app-change-password-confirm').value = '';
+            updateVisualEffects();
+        }
+
+        async function initAppSettings() {
+            try {
+                const config = await storage.getGlobalConfig();
+                globalConfigCache = config;
+                applyAppSettings(config);
+            } catch (error) {
+                console.error('Failed to initialize app settings:', error);
+            }
+        }
+
+        async function saveAppSettings(event) {
+            if (event && event.preventDefault) event.preventDefault();
+
+            const newPassword = document.getElementById('app-change-password').value.trim();
+            const confirmPassword = document.getElementById('app-change-password-confirm').value.trim();
+            if (newPassword || confirmPassword) {
+                if (newPassword !== confirmPassword) {
+                    showToast('Passwords do not match.', 'error');
+                    return;
+                }
+            }
+
+            const config = { ...globalConfigCache };
+            config.app_settings = getAppSettingsFromForm();
+            config.web_ui_port = getWebUIPortFromForm();
+
+            if (newPassword) {
+                config.password = newPassword;
+            } else {
+                delete config.password;
+            }
+
+            globalConfigCache = config;
+
+            try {
+                const result = await storage.saveGlobalConfig(config);
+                if (result.error) {
+                    showToast('Error saving app settings: ' + result.error, 'error');
+                } else {
+                    delete config.password;
+                    globalConfigCache = config;
+                    applyAppSettings(config);
+                    showToast('App settings saved!', 'success');
+                }
+            } catch (error) {
+                showToast('Error saving app settings: ' + error.message, 'error');
+            }
+        }
+
+        async function resetAppSettings() {
+            document.getElementById('app-auto-refresh').checked = DEFAULT_APP_SETTINGS.autoRefresh;
+            document.getElementById('app-visual-effects').checked = DEFAULT_APP_SETTINGS.visualEffects;
+            document.getElementById('app-web-ui-port').value = DEFAULT_APP_SETTINGS.web_ui_port;
+            await saveAppSettings();
+        }
+
+        function initGlobalProviderSelect() {
+            const input = document.getElementById('global-provider');
+            const dropdown = document.getElementById('global-provider-dropdown');
+
+            const openDropdown = () => {
+                globalProviderSearchQuery = '';
+                showGlobalProviderDropdown('');
+            };
+
+            input.addEventListener('focus', openDropdown);
+            input.addEventListener('click', openDropdown);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('active');
+                    globalProviderSearchQuery = '';
+                } else if (e.key.length === 1 || e.key === 'Backspace') {
+                    e.preventDefault();
+                    if (e.key === 'Backspace') {
+                        globalProviderSearchQuery = globalProviderSearchQuery.slice(0, -1);
+                    } else {
+                        globalProviderSearchQuery += e.key;
+                    }
+                    showGlobalProviderDropdown(globalProviderSearchQuery);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.searchable-select-wrapper')) {
+                    dropdown.classList.remove('active');
+                    globalProviderSearchQuery = '';
+                }
+            });
+        }
+
+        function showGlobalProviderDropdown(filter) {
+            const dropdown = document.getElementById('global-provider-dropdown');
+            const currentValue = getSelectedGlobalProvider();
+            const filtered = globalProviderOptions.filter(provider => formatProviderLabel(provider).toLowerCase().includes((filter || '').toLowerCase()));
+
+            if (filtered.length === 0) {
+                const msg = filter ? `No providers matching "${filter}"` : 'No providers available';
+                dropdown.innerHTML = `<div class="select-option" style="color:var(--text-dim);cursor:default;">${msg}</div>`;
+            } else {
+                dropdown.innerHTML = filtered.map(provider => `
+                    <div class="select-option ${provider === currentValue ? 'selected' : ''}" onclick="selectGlobalProvider('${provider}')">
+                        ${formatProviderLabel(provider)}
+                    </div>
+                `).join('');
+            }
+
+            dropdown.classList.add('active');
+        }
+
+        function selectGlobalProvider(provider) {
+            const input = document.getElementById('global-provider');
+            input.value = formatProviderLabel(provider);
+            input.dataset.providerValue = provider;
+            document.getElementById('global-provider-dropdown').classList.remove('active');
+            globalProviderSearchQuery = '';
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function getSelectedGlobalProvider() {
+            const input = document.getElementById('global-provider');
+            return input.dataset.providerValue || input.value.toLowerCase();
+        }
+
+        function updateApiKeyField() {
+            const provider = getSelectedGlobalProvider();
+            const labelEl = document.getElementById('global-api-key-label');
+            const inputEl = document.getElementById('global-api-key');
+            const openaiEndpointGroup = document.getElementById('openai-endpoint-group');
+
+            if (provider === 'ollama') {
+                labelEl.innerHTML = 'Ollama Base URL <span style="color:var(--text-dim);font-weight:400;font-size:0.8rem;text-transform:none;letter-spacing:normal;">(optional)</span>';
+                inputEl.placeholder = 'http://localhost:11434';
+                inputEl.type = 'text';
+                openaiEndpointGroup.style.display = 'none';
+            } else if (provider === 'openai') {
+                labelEl.textContent = 'OpenAI API Key';
+                inputEl.placeholder = 'sk-...';
+                inputEl.type = 'password';
+                openaiEndpointGroup.style.display = 'block';
+            } else {
+                labelEl.textContent = `${provider.charAt(0).toUpperCase() + provider.slice(1)} API Key`;
+                inputEl.placeholder = 'sk-...';
+                inputEl.type = 'password';
+                openaiEndpointGroup.style.display = 'none';
+            }
+
+            const key = provider === 'ollama' ? (globalConfigCache.ollama_url || '') : ((globalConfigCache.api_keys && globalConfigCache.api_keys[provider]) || '');
+            inputEl.value = key;
+
+            // Set OpenAI endpoint value
+            const endpointEl = document.getElementById('openai-endpoint');
+            endpointEl.value = globalConfigCache.openai_endpoint || '';
+        }
+
+        async function handleLogout() {
+            hideLogoutMenu();
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    window.location.href = '/login.html';
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Error during logout.');
+            }
+        }
+
+        function toggleLogoutMenu(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('logout-menu');
+            menu.classList.toggle('visible');
+        }
+
+        function hideLogoutMenu() {
+            const menu = document.getElementById('logout-menu');
+            if (menu) {
+                menu.classList.remove('visible');
+            }
+        }
+
+        async function shutdownWaterBot() {
+            hideLogoutMenu();
+            try {
+                const response = await fetch(`${API_BASE}/api/system/shutdown`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.message || 'Shutting down WaterBot...', 'success');
+                } else {
+                    showToast(data.error || 'Failed to shut down WaterBot.', 'error');
+                }
+            } catch (error) {
+                console.error('Shutdown error:', error);
+                showToast('Error shutting down WaterBot.', 'error');
+            }
+        }
+
+        async function restartWaterBot() {
+            hideLogoutMenu();
+            try {
+                const response = await fetch(`${API_BASE}/api/system/restart`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.message || 'Restarting WaterBot...', 'success');
+                } else {
+                    showToast(data.error || 'Failed to restart WaterBot.', 'error');
+                }
+            } catch (error) {
+                console.error('Restart error:', error);
+                showToast('Error restarting WaterBot.', 'error');
+            }
+        }
+
+        async function showGlobalSettings() {
+            try {
+                switchSettingsTab('app-settings');
+
+                const config = await storage.getGlobalConfig();
+                if (!config.api_keys) {
+                    config.api_keys = {};
+                    if (config.api_key) {
+                        const prov = config.ai_provider || 'openai';
+                        config.api_keys[prov] = config.api_key;
+                    }
+                }
+                globalConfigCache = config;
+                applyAppSettings(config);
+
+                const providerInput = document.getElementById('global-provider');
+                const selectedProvider = config.ai_provider || 'openai';
+                providerInput.value = formatProviderLabel(selectedProvider);
+                providerInput.dataset.providerValue = selectedProvider;
+                document.getElementById('discord-user-id').value = config.discord_user_id || '';
+
+                updateApiKeyField();
+
+                document.getElementById('openai-endpoint').value = config.openai_endpoint || '';
+
+                document.getElementById('global-modal').classList.add('active');
+            } catch (error) {
+                showToast('Error loading global settings: ' + error.message, 'error');
+            }
+        }
+
+        function switchSettingsTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+
+            const tabItems = document.querySelectorAll('.tab-item');
+            if (tabId === 'app-settings') {
+                tabItems[0].classList.add('active');
+            } else if (tabId === 'bot-settings') {
+                tabItems[1].classList.add('active');
+            }
+        }
+
+        function closeGlobalModal() {
+            document.getElementById('global-modal').classList.remove('active');
+        }
+
+        document.getElementById('global-provider').addEventListener('change', () => {
+            updateApiKeyField();
+        });
+
+        document.getElementById('app-settings-form').addEventListener('submit', saveAppSettings);
+
+        document.getElementById('global-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const provider = getSelectedGlobalProvider();
+            const keyValue = document.getElementById('global-api-key').value.trim();
+
+            if (provider !== 'ollama' && !keyValue) {
+                showToast(`Please enter an API key for ${formatProviderLabel(provider)}`, 'error');
+                return;
+            }
+
+            const config = { ...globalConfigCache };
+            config.ai_provider = provider;
+            config.discord_user_id = document.getElementById('discord-user-id').value;
+            config.api_keys = config.api_keys || {};
+
+            if (provider === 'ollama') {
+                config.ollama_url = keyValue;
+            } else {
+                config.api_keys[provider] = keyValue;
+            }
+
+            if (provider === 'openai') {
+                const endpointValue = document.getElementById('openai-endpoint').value.trim();
+                if (endpointValue) {
+                    config.openai_endpoint = endpointValue;
+                } else {
+                    delete config.openai_endpoint;
+                }
+            }
+
+            config.api_key = keyValue;
+
+            try {
+                const result = await storage.saveGlobalConfig(config);
+                if (result.error) {
+                    showToast('Error saving settings: ' + result.error, 'error');
+                } else {
+                    globalConfigCache = config;
+                    closeGlobalModal();
+                    showToast('Global settings saved!', 'success');
+                }
+            } catch (error) {
+                showToast('Error saving settings: ' + error.message, 'error');
+            }
+        });
+
+        function refreshBots(refreshMeta = false) {
+            renderBots(true, refreshMeta);
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+            if (!e.target.closest('.logout-dropdown-wrapper')) {
+                hideLogoutMenu();
+            }
+            if (!e.target.closest('.sort-dropdown-wrapper')) {
+                hideSortMenu();
+            }
+        });
+
+        // Initial render
+        initCreateModelSelect();
+        initGlobalProviderSelect();
+        initAppSettings();
+        updateSortMenu();
+        renderBots(true, true);
+
+        // Auto-refresh stats every 5 seconds
+        setInterval(async () => {
+            try {
+                if (!appSettings.autoRefresh) return;
+                await renderBots();
+            } catch (error) {
+                console.error('Auto-refresh error:', error);
+            }
+        }, 5000);
+    </script>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="sort-menu" class="sort-menu">
+        <div class="sort-menu-label">Sort by</div>
+        <button onclick="setSortField('name')"><span>Name</span><span class="sort-check">✓</span></button>
+        <button onclick="setSortField('lastOnline')"><span>Last Online</span><span class="sort-check">✓</span></button>
+        <button onclick="setSortField('discordGuildCount')"><span>Server Count</span><span class="sort-check">✓</span></button>
+        <button onclick="setSortField('users')"><span>User Count</span><span class="sort-check">✓</span></button>
+        <div class="sort-divider"></div>
+        <div class="sort-toggle" id="sort-invert-toggle" onclick="toggleSortInvert()">
+            <span>Inverted order</span>
+            <div class="sort-toggle-switch"></div>
+        </div>
+    </div>
+
+    <img src="/assets/triangle-alert.svg" style="display:none" aria-hidden="true">
+</body>
+<footer class="site-footer">
+    &copy; <span id="footer-year"></span> NerdLabs AI. Licensed under GPL-3.0.
+    <span class="footer-sep">|</span>
+    <a href="https://discord.gg/rkSKtdW99R" target="_blank" rel="noopener">Join our Discord</a>
+    <span class="footer-sep">|</span>
+    <span id="footer-version">Loading...</span>
+</footer>
+
+<script>
+    document.getElementById('footer-year').textContent = new Date().getFullYear();
+    fetch('/api/version')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('footer-version').textContent = data.version;
+        })
+        .catch(error => {
+            console.error('Error fetching version:', error);
+        });
+</script>
+</html>

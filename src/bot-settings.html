@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterBot — Settings</title>
+    <link rel="icon" type="image/png" href="assets/waterbot-small.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00a8ff;
+            --primary-glow: rgba(0, 168, 255, 0.5);
+            --secondary: #0088cc;
+            --success: #00d084;
+            --danger: #ff4757;
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(15, 20, 30, 0.85);
+            --bg-hover: rgba(20, 30, 45, 0.9);
+            --text: #e1e8f0;
+            --text-dim: #8b95a5;
+            --border: rgba(0, 168, 255, 0.2);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Network Background */
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .bot-id-display {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .tab-list {
+            list-style: none;
+            padding: 1rem 0;
+            flex: 1;
+        }
+
+        .tab-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-item:hover {
+            background: rgba(0, 168, 255, 0.1);
+            color: var(--text);
+        }
+
+        .tab-item.active {
+            background: rgba(0, 168, 255, 0.15);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 3rem;
+        }
+
+        .content-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-description {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Form Styles */
+        .settings-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .settings-section:has(.select-dropdown) {
+            z-index: 2;
+        }
+
+        .section-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Checkbox Toggle */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-dim);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: white;
+        }
+
+        .no-visual-effects .btn:hover,
+        .no-visual-effects .tab-link.active,
+        .no-visual-effects .tab-item.active,
+        .no-visual-effects .modal-content,
+        .no-visual-effects .settings-section {
+            box-shadow: none !important;
+        }
+
+        .no-visual-effects .btn,
+        .no-visual-effects .toggle-slider,
+        .no-visual-effects .toast,
+        .no-visual-effects .top-bar,
+        .no-visual-effects .sidebar {
+            transition: none !important;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: white;
+        }
+
+        /* Knowledge List */
+        .knowledge-list {
+            margin-top: 1rem;
+        }
+
+        .knowledge-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+
+        .knowledge-item input {
+            flex: 1;
+        }
+
+        .add-knowledge-btn {
+            margin-top: 0.5rem;
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px var(--primary-glow);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Conditional Content */
+        .conditional-content {
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 3px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .conditional-content.hidden {
+            display: none;
+        }
+
+        /* Searchable Select */
+        .searchable-select-wrapper {
+            position: relative;
+        }
+
+        .searchable-input {
+            cursor: pointer;
+        }
+
+        .select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(15, 20, 30, 0.98);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .select-dropdown.active {
+            display: block;
+        }
+
+        .select-option {
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .select-option:hover {
+            background: rgba(0, 168, 255, 0.1);
+        }
+
+        .select-option.selected {
+            background: rgba(0, 168, 255, 0.2);
+            color: var(--primary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+
+        /* Back Button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Token validation */
+        .token-input-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: stretch;
+        }
+
+        .token-input-row input {
+            flex: 1;
+        }
+
+        .token-validation-result {
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .token-validation-result.show { display: block; }
+
+        .token-validation-result.validating {
+            background: rgba(0, 168, 255, 0.1);
+            border: 1px solid rgba(0, 168, 255, 0.3);
+            color: var(--primary);
+        }
+
+        .token-validation-result.success {
+            background: rgba(0, 208, 132, 0.1);
+            border: 1px solid rgba(0, 208, 132, 0.4);
+            color: var(--success);
+        }
+
+        .token-validation-result.error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.4);
+            color: var(--danger);
+        }
+
+        .token-validation-result.warning {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            color: #ffa500;
+        }
+
+        .token-bot-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .token-bot-preview img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+        }
+
+        .intent-checks {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .intent-check-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        /* Empty model warning banner */
+        .model-warning-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 165, 0, 0.08);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            border-radius: 10px;
+            color: #ffa500;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .model-warning-banner .warn-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .model-warning-banner strong {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-size: 0.95rem;
+        }
+
+        .model-warning-banner .warn-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin-top: 0.4rem;
+        }
+
+        .warn-field-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: #ffa500;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .warn-field-link:hover { text-decoration: underline; }
+
+        /* Field-level warning highlight */
+        .field-warning {
+            border-color: rgba(255, 165, 0, 0.7) !important;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.2) !important;
+        }
+
+        /* Sidebar tab warning badge */
+        .tab-item .warn-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 0.4rem;
+            font-size: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .toast-container {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 2000;
+            pointer-events: none;
+            width: min(100%, 420px);
+            padding: 0 12px;
+        }
+
+        .toast {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.95rem 1rem;
+            border-radius: 14px;
+            background: rgba(18, 23, 35, 0.96);
+            color: var(--text);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: auto;
+            animation: toast-in 0.25s ease forwards;
+        }
+
+        .toast.hide {
+            animation: toast-out 0.25s ease forwards;
+        }
+
+        .toast .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+
+        .toast .toast-message {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .toast.success { border-color: rgba(0, 208, 132, 0.35); }
+        .toast.error { border-color: rgba(255, 71, 87, 0.35); }
+        .toast.warning { border-color: rgba(255, 165, 0, 0.35); }
+        .toast.info { border-color: rgba(0, 168, 255, 0.35); }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toast-out {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(10px); }
+        }
+
+        .inline-icon {
+            width: 1em;
+            height: 1em;
+            vertical-align: -0.125em;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+
+        .icon-spin {
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-icon .inline-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .warn-badge-icon {
+            width: 0.9em;
+            height: 0.9em;
+            vertical-align: -0.1em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="network-canvas"></canvas>
+    <div id="toast-container" class="toast-container"></div>
+    
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">WaterBot Settings</div>
+                <div class="bot-id-display" id="bot-id-display">Loading...</div>
+            </div>
+            
+            <ul class="tab-list">
+                <li class="tab-item active" onclick="switchTab('general')">General</li>
+                <li class="tab-item" onclick="switchTab('personality')">Personality</li>
+                <li class="tab-item" onclick="switchTab('natural-replies')">Natural Replies</li>
+                <li class="tab-item" onclick="switchTab('advanced')">Advanced</li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" onclick="saveSettings()">
+                    <img src="assets/save.svg" alt="save" style="width:1rem;height:1rem;margin-right:0.5rem;"> Save Changes
+                </button>
+                <button class="btn" style="width: 100%;" onclick="goBack()">
+                    <img src="assets/arrow-left.svg" alt="back" class="inline-icon" style="margin-right:0.35rem;"> Back to Dashboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Model warning banner -->
+            <div id="model-warning-banner" class="model-warning-banner" style="display:none;"></div>
+
+            <!-- General Tab -->
+            <div id="general" class="tab-content active">
+                <div class="content-header">
+                    <h1 class="page-title">General Settings</h1>
+                    <p class="page-description">Configure basic bot information and credentials</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="form-group">
+                        <label for="display-name">Display Name</label>
+                        <input type="text" id="display-name" placeholder="My Awesome Bot" required>
+                        <div class="help-text">The name that the bot listens to</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ai-model">AI Model</label>
+                        <div class="searchable-select-wrapper">
+                            <input 
+                                type="text" 
+                                id="ai-model" 
+                                class="searchable-input" 
+                                placeholder="Click to select a model..." 
+                                autocomplete="off"
+                                readonly
+                                required
+                            >
+                            <div id="ai-model-dropdown" class="select-dropdown"></div>
+                        </div>
+                        <div class="help-text">The primary AI model used for responses</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cheap-model">Cheap Model <span style="color:var(--text-dim);font-weight:400;font-size:0.8rem;text-transform:none;letter-spacing:normal;">(optional)</span></label>
+                        <div class="searchable-select-wrapper">
+                            <input 
+                                type="text" 
+                                id="cheap-model" 
+                                class="searchable-input" 
+                                placeholder="Same as primary AI model" 
+                                autocomplete="off"
+                                readonly
+                            >
+                            <div id="cheap-model-dropdown" class="select-dropdown"></div>
+                        </div>
+                        <div class="help-text">Fallback model used when a user has reached their daily message limit. Leave empty to use the primary AI model.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image-model">Image Model <span style="color:var(--text-dim);font-weight:400;font-size:0.8rem;text-transform:none;letter-spacing:normal;">(optional)</span></label>
+                        <div class="searchable-select-wrapper">
+                            <input 
+                                type="text" 
+                                id="image-model" 
+                                class="searchable-input" 
+                                placeholder="Same as primary AI model" 
+                                autocomplete="off"
+                                readonly
+                            >
+                            <div id="image-model-dropdown" class="select-dropdown"></div>
+                        </div>
+                        <div class="help-text">Model used to analyze image inputs. Only needed when the primary AI model doesn't support images. Leave empty to use the primary AI model.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Auto Start</label>
+                        <div class="checkbox-wrapper">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autostart">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="help-text" style="margin: 0;">Start bot automatically when the server starts</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="discord-token">Discord Token</label>
+                        <div class="token-input-row">
+                            <input type="password" id="discord-token" placeholder="Your bot token" required>
+                            <button type="button" class="btn btn-small" id="validate-token-btn" onclick="validateToken()" style="white-space:nowrap;flex-shrink:0;">
+                                Validate
+                            </button>
+                        </div>
+                        <div class="help-text">Your Discord bot token from the Discord Developer Portal</div>
+                        <div id="token-validation-result" class="token-validation-result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personality Tab -->
+            <div id="personality" class="tab-content">
+                <div class="content-header">
+                    <h1 class="page-title">Personality Settings</h1>
+                    <p class="page-description">Define your bot's character and knowledge base</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="form-group">
+                        <label for="system-message">System Message</label>
+                        <textarea id="system-message" placeholder="You are a chill Discord bot..." required></textarea>
+                        <div class="help-text">Instructions that define the bot's personality and behavior</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Knowledge Base</label>
+                        <div class="help-text" style="margin-bottom: 0.5rem;">Add custom knowledge for your bot to reference</div>
+                        <div id="knowledge-list" class="knowledge-list">
+                            <!-- Knowledge items will be added here dynamically -->
+                        </div>
+                        <button type="button" class="btn btn-small add-knowledge-btn" onclick="addKnowledgeItem()">
+                            <img src="assets/plus.svg" alt="refresh" class="inline-icon" style="margin-right:0.35rem;">
+                            Add Knowledge
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Natural Replies Tab -->
+            <div id="natural-replies" class="tab-content">
+                <div class="content-header">
+                    <h1 class="page-title">Natural Replies</h1>
+                    <p class="page-description">Configure how your bot responds naturally to conversations</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="form-group">
+                        <label>Natural Replies Enabled</label>
+                        <div class="checkbox-wrapper">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="natural-replies-enabled" checked onchange="toggleNaturalReplies()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="help-text" style="margin: 0;">Allow bot to respond naturally without being mentioned</span>
+                        </div>
+                    </div>
+
+                    <div id="natural-replies-settings" class="conditional-content">
+                        <div class="form-group">
+                            <label for="natural-replies-frequency">Natural Replies Frequency</label>
+                            <input type="number" id="natural-replies-frequency" value="180" min="1" required>
+                            <div class="help-text">Minimum seconds between natural replies (default: 180)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Tab -->
+            <div id="advanced" class="tab-content">
+                <div class="content-header">
+                    <h1 class="page-title">Advanced Settings</h1>
+                    <p class="page-description">Settings for nerds</p>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title">AI Models</div>
+
+                    <div class="form-group">
+                        <label for="embeddings-model">Embeddings Model</label>
+                        <div class="searchable-select-wrapper">
+                            <input 
+                                type="text" 
+                                id="embeddings-model" 
+                                class="searchable-input" 
+                                placeholder="Click to select a model..." 
+                                autocomplete="off"
+                                readonly
+                            >
+                            <div id="embeddings-model-dropdown" class="select-dropdown"></div>
+                        </div>
+                        <div class="help-text" id="embeddings-model-help">AI model used for internal text embedding</div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title">Memory &amp; Context</div>
+                    
+                    <div class="form-group">
+                        <label for="context-size">Context Size</label>
+                        <input type="number" id="context-size" value="10" min="1" required>
+                        <div class="help-text">Number of previous messages to include in context (default: 10)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memory-limit">Memory Limit</label>
+                        <input type="number" id="memory-limit" value="500" min="1" required>
+                        <div class="help-text">Maximum number of memories to store (default: 500)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memory-top-k">Memory Top K</label>
+                        <input type="number" id="memory-top-k" value="3" min="1" required>
+                        <div class="help-text">Number of top memories to retrieve (default: 3)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="knowledge-top-k">Knowledge Top K</label>
+                        <input type="number" id="knowledge-top-k" value="3" min="1" required>
+                        <div class="help-text">Number of top knowledge items to retrieve (default: 3)</div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title">Rate Limiting & Banning</div>
+                    
+                    <div class="form-group">
+                        <label for="rate-limit">Rate Limit</label>
+                        <input type="number" id="rate-limit" value="10" min="1" required>
+                        <div class="help-text">Maximum requests per minute per user (default: 10)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rate-limit-message">Rate Limit Message</label>
+                        <textarea id="rate-limit-message"></textarea>
+                        <div class="help-text">Message shown to users when they hit the rate limit</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ban-message">Ban Message</label>
+                        <textarea id="ban-message"></textarea>
+                        <div class="help-text">Message shown to banned users when they try to use the bot</div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title">Debug Options</div>
+                    
+                    <div class="form-group">
+                        <label>Debug Mode</label>
+                        <div class="checkbox-wrapper">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="debug-mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="help-text" style="margin: 0;">Enable detailed logging for troubleshooting</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = window.location.origin;
+
+        async function initVisualEffects() {
+            try {
+                const response = await fetch(`${API_BASE}/api/global-config`);
+                const config = await response.json();
+                const enabled = config?.app_settings?.visualEffects ?? true;
+                const canvas = document.getElementById('network-canvas');
+                if (!enabled) {
+                    if (canvas) canvas.style.display = 'none';
+                    document.body.classList.add('no-visual-effects');
+                } else {
+                    document.body.classList.remove('no-visual-effects');
+                }
+            } catch (error) {
+                console.error('Unable to load visual settings:', error);
+            }
+        }
+
+        // Get bot ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const botId = urlParams.get('id');
+
+        if (!botId) {
+            showToast('No bot ID specified!', 'error');
+            window.location.href = '/';
+        }
+
+        // Main models
+        let aiModels = [];
+        let mainFetchState = 'idle';
+        let mainFetchError = '';
+        const modelsFetchState_ref = { get state() { return mainFetchState; } };
+
+        // Embeddings models
+        let embeddingsModels = [];
+        let embFetchState = 'idle';
+        let embFetchError = '';
+
+        const _ms = {};
+
+        function showToast(message, type = 'info', duration = 3500) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const iconMap = {
+                success: '<img src="assets/check.svg" alt="success" style="width:1rem;height:1rem;">',
+                error: '<img src="assets/x.svg" alt="error" style="width:1rem;height:1rem;">',
+                warning: '<img src="assets/triangle-alert.svg" alt="warning" style="width:1rem;height:1rem;">',
+                info: '<img src="assets/info.svg" alt="info" style="width:1rem;height:1rem;">'
+            };
+            toast.innerHTML = `
+                <div class="toast-icon">${iconMap[type] || iconMap.info}</div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+            const removeToast = () => {
+                if (toast.classList.contains('hide')) return;
+                toast.classList.add('hide');
+                toast.addEventListener('animationend', () => toast.remove(), { once: true });
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            const timer = setTimeout(removeToast, duration);
+            toast.addEventListener('mouseenter', () => clearTimeout(timer));
+            toast.addEventListener('mouseleave', () => setTimeout(removeToast, 2000));
+        }
+
+        // Global dispatch functions called from inline onclick in dropdown HTML
+        function _msPick(inputId, model) {
+            const inst = _ms[inputId];
+            if (!inst) return;
+            document.getElementById(inputId).value = model;
+            document.querySelectorAll('.select-dropdown').forEach(d => d.classList.remove('active'));
+            Object.values(_ms).forEach(i => { i.sq = ''; });
+        }
+
+        function _msClear(inputId) {
+            document.getElementById(inputId).value = '';
+            document.querySelectorAll('.select-dropdown').forEach(d => d.classList.remove('active'));
+            Object.values(_ms).forEach(i => { i.sq = ''; });
+        }
+
+        function _msRetry(group) {
+            if (group === 'emb') {
+                embFetchState = 'idle';
+                embeddingsModels = [];
+                _doFetchEmb();
+            } else {
+                mainFetchState = 'idle';
+                aiModels = [];
+                _doFetchMain();
+            }
+        }
+
+        function _rerenderGroup(group) {
+            Object.values(_ms).forEach(inst => {
+                if (inst.group === group) {
+                    const dd = document.getElementById(inst.dropdownId);
+                    if (dd && dd.classList.contains('active')) {
+                        inst.render(inst.sq);
+                    }
+                }
+            });
+        }
+
+        async function _doFetchMain() {
+            mainFetchState = 'loading';
+            mainFetchError = '';
+            _rerenderGroup('main');
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/models`);
+                const data = await resp.json();
+                if (data.error) {
+                    mainFetchState = 'error';
+                    mainFetchError = data.error;
+                } else {
+                    aiModels = data.models || [];
+                    mainFetchState = 'loaded';
+                }
+            } catch (err) {
+                mainFetchState = 'error';
+                mainFetchError = err.message;
+            }
+
+            _rerenderGroup('main');
+        }
+
+        async function _doFetchEmb() {
+            embFetchState = 'loading';
+            embFetchError = '';
+            _rerenderGroup('emb');
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/models/embeddings`);
+                const data = await resp.json();
+                if (data.error) {
+                    embFetchState = 'error';
+                    embFetchError = data.error;
+                } else {
+                    embeddingsModels = data.models || [];
+                    embFetchState = 'loaded';
+                }
+            } catch (err) {
+                embFetchState = 'error';
+                embFetchError = err.message;
+            }
+
+            _rerenderGroup('emb');
+        }
+
+        function initModelSelect({ inputId, dropdownId, group, allowEmpty }) {
+            const inst = { inputId, dropdownId, group, allowEmpty: !!allowEmpty, sq: '' };
+
+            inst.render = function(filter) {
+                const dropdown = document.getElementById(dropdownId);
+                const fetchState = group === 'emb' ? embFetchState : mainFetchState;
+                const fetchError = group === 'emb' ? embFetchError : mainFetchError;
+                const models    = group === 'emb' ? embeddingsModels : aiModels;
+                const currentVal = document.getElementById(inputId).value;
+
+                if (fetchState === 'loading') {
+                    dropdown.innerHTML = `<div class="select-option" style="color:var(--text-dim);cursor:default;">
+                        <img src="assets/refresh-ccw.svg" alt="loading" class="inline-icon icon-spin" style="margin-right:0.4rem;">
+                        Loading models...
+                    </div>`;
+                    dropdown.classList.add('active');
+                    return;
+                }
+
+                if (fetchState === 'error') {
+                    dropdown.innerHTML = `
+                        <div class="select-option" style="color:var(--danger);cursor:default;"><img src="assets/x.svg" alt="error" class="inline-icon" style="margin-right:0.5rem;"> ${fetchError}</div>
+                        <div class="select-option" style="color:var(--primary);text-align:center;" onclick="_msRetry('${group}')"><img src="assets/refresh-ccw.svg" alt="retry" class="inline-icon" style="margin-right:0.35rem;"> Retry</div>`;
+                    dropdown.classList.add('active');
+                    return;
+                }
+
+                const filtered = models.filter(m => m.toLowerCase().includes((filter || '').toLowerCase()));
+                let html = '';
+
+                if (inst.allowEmpty) {
+                    const emptySelected = !currentVal ? 'selected' : '';
+                    html += `<div class="select-option ${emptySelected}" onclick="_msClear('${inputId}')">
+                        <em style="color:var(--text-dim);">Use primary AI model</em>
+                    </div>`;
+                }
+
+                if (filtered.length === 0) {
+                    const msg = filter
+                        ? `No models matching "${filter}"`
+                        : (models.length === 0 ? 'No models available' : 'No matches');
+                    html += `<div class="select-option" style="color:var(--text-dim);cursor:default;">${msg}</div>`;
+                } else {
+                    html += filtered.map(model => `
+                        <div class="select-option ${model === currentVal ? 'selected' : ''}"
+                            onclick="_msPick('${inputId}', '${model.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')">
+                            ${model}
+                        </div>
+                    `).join('');
+                }
+
+                dropdown.innerHTML = html;
+                dropdown.classList.add('active');
+            };
+
+            _ms[inputId] = inst;
+
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+
+            const openDropdown = () => {
+                inst.sq = '';
+                const state = group === 'emb' ? embFetchState : mainFetchState;
+                if (state === 'idle') {
+                    if (group === 'emb') _doFetchEmb();
+                    else _doFetchMain();
+                } else {
+                    inst.render('');
+                }
+            };
+
+            input.addEventListener('focus', openDropdown);
+            input.addEventListener('click', openDropdown);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('active');
+                    inst.sq = '';
+                } else if (e.key.length === 1 || e.key === 'Backspace') {
+                    e.preventDefault();
+                    inst.sq = e.key === 'Backspace' ? inst.sq.slice(0, -1) : inst.sq + e.key;
+                    inst.render(inst.sq);
+                }
+            });
+        }
+
+        // Close all dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.searchable-select-wrapper')) {
+                document.querySelectorAll('.select-dropdown').forEach(d => d.classList.remove('active'));
+                Object.values(_ms).forEach(i => { i.sq = ''; });
+            }
+        });
+
+        function initAllModelSelects() {
+            initModelSelect({ inputId: 'ai-model',          dropdownId: 'ai-model-dropdown',          group: 'main', allowEmpty: false });
+            initModelSelect({ inputId: 'cheap-model',       dropdownId: 'cheap-model-dropdown',       group: 'main', allowEmpty: true  });
+            initModelSelect({ inputId: 'image-model',       dropdownId: 'image-model-dropdown',       group: 'main', allowEmpty: true  });
+            initModelSelect({ inputId: 'embeddings-model',  dropdownId: 'embeddings-model-dropdown',  group: 'emb',  allowEmpty: false });
+        }
+
+        // Tab switching
+        function switchTab(tabId) {
+            // Remove active class from all tabs and tab items
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Find and activate the correct tab item
+            const tabItems = document.querySelectorAll('.tab-item');
+            const tabNames = ['general', 'personality', 'natural-replies', 'advanced'];
+            const index = tabNames.indexOf(tabId);
+            if (index !== -1) {
+                tabItems[index].classList.add('active');
+            }
+        }
+
+        // Toggle natural replies settings
+        function toggleNaturalReplies() {
+            const enabled = document.getElementById('natural-replies-enabled').checked;
+            const settings = document.getElementById('natural-replies-settings');
+            
+            if (enabled) {
+                settings.classList.remove('hidden');
+            } else {
+                settings.classList.add('hidden');
+            }
+        }
+
+        // Knowledge management
+        let knowledgeItems = [];
+
+        function renderKnowledgeList() {
+            const container = document.getElementById('knowledge-list');
+            
+            if (knowledgeItems.length === 0) {
+                container.innerHTML = '<div class="help-text">No knowledge items added yet</div>';
+                return;
+            }
+
+            container.innerHTML = knowledgeItems.map((item, index) => `
+                <div class="knowledge-item">
+                    <input 
+                        type="text" 
+                        value="${item}" 
+                        placeholder="Knowledge item..."
+                        onchange="updateKnowledgeItem(${index}, this.value)"
+                    >
+                    <button type="button" class="btn btn-danger btn-icon btn-small" onclick="removeKnowledgeItem(${index})">
+                        <img src="assets/trash.svg" alt="delete" class="inline-icon">
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addKnowledgeItem() {
+            knowledgeItems.push('');
+            renderKnowledgeList();
+        }
+
+        function updateKnowledgeItem(index, value) {
+            knowledgeItems[index] = value;
+        }
+
+        function removeKnowledgeItem(index) {
+            knowledgeItems.splice(index, 1);
+            renderKnowledgeList();
+        }
+
+        // Token validation
+        function showTokenValidation(state, html) {
+            const el = document.getElementById('token-validation-result');
+            el.className = `token-validation-result show ${state}`;
+            el.innerHTML = html;
+        }
+
+        function clearTokenValidation() {
+            const el = document.getElementById('token-validation-result');
+            el.className = 'token-validation-result';
+            el.innerHTML = '';
+        }
+
+        document.getElementById('discord-token').addEventListener('input', clearTokenValidation);
+
+        async function validateToken() {
+            const token = document.getElementById('discord-token').value.trim();
+            if (!token) {
+            showTokenValidation('error', '<img src="assets/x.svg" alt="error" class="inline-icon" style="margin-right:0.5rem;"> Please enter a token first.');
+            return;
+            }
+
+            const btn = document.getElementById('validate-token-btn');
+            btn.disabled = true;
+            btn.textContent = 'Validating...';
+            showTokenValidation('validating', 'Validating token...');
+
+            let result;
+            try {
+            const resp = await fetch(`${API_BASE}/api/validate-token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            result = await resp.json();
+            } catch (err) {
+            result = { valid: false, error: err.message };
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Validate';
+
+            if (!result.valid) {
+            showTokenValidation('error', `<img src="assets/x.svg" alt="error" class="inline-icon" style="margin-right:0.5rem;"> ${result.error || 'Invalid token'}`);
+            return;
+            }
+
+            const avatarHtml = result.avatar_url
+            ? `<img src="${result.avatar_url}" alt="avatar">` : '';
+
+            const membersOk = result.members_intent !== false;
+            const msgOk = result.message_content_intent !== false;
+            const hasIssues = !membersOk || !msgOk;
+
+            let intentHtml = '';
+            if (result.members_intent !== null && result.message_content_intent !== null) {
+            intentHtml = `<div class="intent-checks">
+                <div class="intent-check-item">
+                <span>${membersOk ? '<img src="assets/check.svg" alt="check" style="width:1rem;height:1rem;">' : '<img src="assets/x.svg" alt="error" style="width:1rem;height:1rem;">'}</span>
+                Server Members Intent
+                </div>
+                <div class="intent-check-item">
+                <span>${msgOk ? '<img src="assets/check.svg" alt="check" style="width:1rem;height:1rem;">' : '<img src="assets/x.svg" alt="error" style="width:1rem;height:1rem;">'}</span>
+                Message Content Intent
+                </div>
+            </div>`;
+            }
+
+            const intentWarning = hasIssues
+            ? `<div style="margin-top:0.5rem;font-size:0.85rem;">Required intents are not enabled. Please enable them under "Privileged Gateway Intents" in the Discord Developer Portal.</div>`
+            : '';
+
+            showTokenValidation(
+            hasIssues ? 'warning' : 'success',
+            `<div class="token-bot-preview">
+                ${avatarHtml}
+                <div>
+                <strong>${result.username}</strong>
+                ${result.guild_count != null ? `<div style="font-size:0.8rem;color:var(--text-dim)">${result.guild_count} servers</div>` : ''}
+                </div>
+             </div>
+             ${intentHtml}
+             ${intentWarning}`
+            );
+        }
+
+        // Check for empty required model fields and show guidance
+        function checkEmptyModelFields() {
+            const fields = [
+                { id: 'ai-model',         label: 'AI Model',         tab: 'general',  tabLabel: 'General'  },
+                { id: 'embeddings-model', label: 'Embeddings Model',  tab: 'advanced', tabLabel: 'Advanced' },
+            ];
+
+            const emptyFields = fields.filter(f => !document.getElementById(f.id).value.trim());
+
+            fields.forEach(f => {
+                document.getElementById(f.id).classList.remove('field-warning');
+            });
+            document.querySelectorAll('.tab-item .warn-badge').forEach(b => b.remove());
+
+            const banner = document.getElementById('model-warning-banner');
+
+            if (emptyFields.length === 0) {
+                banner.style.display = 'none';
+                return;
+            }
+
+            const affectedTabs = new Set();
+            emptyFields.forEach(f => {
+                document.getElementById(f.id).classList.add('field-warning');
+                affectedTabs.add(f.tab);
+            });
+
+            const tabNames = ['general', 'personality', 'natural-replies', 'advanced'];
+            const tabItems = document.querySelectorAll('.tab-item');
+            affectedTabs.forEach(tabId => {
+                const idx = tabNames.indexOf(tabId);
+                if (idx !== -1 && tabItems[idx]) {
+                    const badge = document.createElement('span');
+                    badge.className = 'warn-badge';
+                    badge.innerHTML = '<img src="assets/triangle-alert.svg" alt="warning" class="inline-icon warn-badge-icon">';
+                    tabItems[idx].appendChild(badge);
+                }
+            });
+
+            const fieldLinks = emptyFields.map(f =>
+                `<button class="warn-field-link" onclick="switchTab('${f.tab}');document.getElementById('${f.id}').focus();">
+                    - ${f.label} <span style="font-weight:400;font-size:0.82rem;">(${f.tabLabel} tab)</span>
+                 </button>`
+            ).join('');
+
+            banner.innerHTML = `
+                <span class="warn-icon"><img src="assets/triangle-alert.svg" alt="warning" class="inline-icon warn-badge-icon"></span>
+                <div>
+                    <strong>Update settings before starting this bot</strong>
+                    The following required model ${emptyFields.length > 1 ? 'fields are' : 'field is'} not configured. This is likely because the AI provider was changed:
+                    <div class="warn-fields">${fieldLinks}</div>
+                </div>`;
+            banner.style.display = 'flex';
+        }
+
+        // Load bot settings
+        async function loadBotSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/api/bots`);
+                const bots = await response.json();
+                const bot = bots.find(b => b.id === botId);
+
+                if (!bot) {
+                    showToast('Bot not found!', 'error');
+                    window.location.href = '/';
+                    return;
+                }
+
+                document.getElementById('bot-id-display').textContent = bot.name;
+
+                document.title = `WaterBot — ${bot.name} - Settings`;
+
+                document.getElementById('display-name').value = bot.displayName || '';
+                document.getElementById('ai-model').value = bot.aiModel || '';
+                document.getElementById('cheap-model').value = bot.cheapModel || '';
+                document.getElementById('image-model').value = bot.imageModel || '';
+                document.getElementById('autostart').checked = bot.autostart || false;
+                document.getElementById('discord-token').value = bot.discordToken || '';
+
+                document.getElementById('system-message').value = bot.systemMessage || '';
+                knowledgeItems = bot.knowledge || [];
+                renderKnowledgeList();
+
+                document.getElementById('natural-replies-enabled').checked = 
+                    bot.naturalRepliesEnabled !== undefined ? bot.naturalRepliesEnabled : true;
+                document.getElementById('natural-replies-frequency').value = bot.naturalRepliesFrequency || 180;
+                toggleNaturalReplies();
+
+                document.getElementById('embeddings-model').value = bot.embeddingsModel || '';
+                document.getElementById('context-size').value = bot.contextSize || 10;
+                document.getElementById('memory-limit').value = bot.memoryLimit || 500;
+                document.getElementById('memory-top-k').value = bot.memoryTopK || 3;
+                document.getElementById('knowledge-top-k').value = bot.knowledgeTopK || 3;
+                document.getElementById('rate-limit').value = bot.rateLimit || 10;
+                document.getElementById('rate-limit-message').value = bot.rateLimitMessage || 'You are going too fast. Let me take a breath pls';
+                document.getElementById('ban-message').value = bot.banMessage || 'You have been banned from using {bot-name}. Further messages will be ignored.';
+                document.getElementById('debug-mode').checked = bot.debugMode || false;
+
+                checkEmptyModelFields();
+
+            } catch (error) {
+                showToast('Error loading bot settings: ' + error.message, 'error');
+            }
+        }
+
+        // Save bot settings
+        async function saveSettings() {
+            try {
+                const displayName = document.getElementById('display-name').value.trim();
+                const aiModel = document.getElementById('ai-model').value.trim();
+                const discordToken = document.getElementById('discord-token').value.trim();
+                const systemMessage = document.getElementById('system-message').value.trim();
+
+                if (!displayName || !aiModel || !discordToken || !systemMessage) {
+                    showToast('Please fill in all required fields', 'warning');
+                    return;
+                }
+
+                if (!aiModels.includes(aiModel)) {
+                    if (mainFetchState === 'loaded') {
+                        showToast('Please select a valid AI model from the list', 'warning');
+                        return;
+                    }
+                }
+
+                const naturalRepliesEnabled = document.getElementById('natural-replies-enabled').checked;
+                if (naturalRepliesEnabled) {
+                    const frequency = parseInt(document.getElementById('natural-replies-frequency').value);
+                    if (!frequency || frequency < 1) {
+                        showToast('Natural replies frequency must be at least 1', 'warning');
+                        return;
+                    }
+                }
+
+                const integerFields = [
+                    { id: 'context-size', name: 'Context Size' },
+                    { id: 'memory-limit', name: 'Memory Limit' },
+                    { id: 'memory-top-k', name: 'Memory Top K' },
+                    { id: 'knowledge-top-k', name: 'Knowledge Top K' },
+                    { id: 'rate-limit', name: 'Rate Limit' }
+                ];
+
+                for (const field of integerFields) {
+                    const value = parseInt(document.getElementById(field.id).value);
+                    if (isNaN(value) || value < 1) {
+                        showToast(`${field.name} must be at least 1`, 'warning');
+                        return;
+                    }
+                }
+
+                const filteredKnowledge = knowledgeItems.filter(item => item.trim() !== '');
+
+                const botData = {
+                    displayName: displayName,
+                    aiModel: aiModel,
+                    cheapModel: document.getElementById('cheap-model').value.trim(),
+                    imageModel: document.getElementById('image-model').value.trim(),
+                    embeddingsModel: document.getElementById('embeddings-model').value.trim(),
+                    autostart: document.getElementById('autostart').checked,
+                    discordToken: discordToken,
+                    systemMessage: systemMessage,
+                    knowledge: filteredKnowledge,
+                    naturalRepliesEnabled: naturalRepliesEnabled,
+                    naturalRepliesFrequency: parseInt(document.getElementById('natural-replies-frequency').value),
+                    contextSize: parseInt(document.getElementById('context-size').value),
+                    memoryLimit: parseInt(document.getElementById('memory-limit').value),
+                    memoryTopK: parseInt(document.getElementById('memory-top-k').value),
+                    knowledgeTopK: parseInt(document.getElementById('knowledge-top-k').value),
+                    rateLimit: parseInt(document.getElementById('rate-limit').value),
+                    rateLimitMessage: document.getElementById('rate-limit-message').value.trim(),
+                    banMessage: document.getElementById('ban-message').value.trim(),
+                    debugMode: document.getElementById('debug-mode').checked
+                };
+
+                const response = await fetch(`${API_BASE}/api/bots/${botId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(botData)
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    showToast('Error saving settings: ' + result.error, 'error');
+                } else {
+                    showToast('Settings saved successfully!', 'success');
+                }
+            } catch (error) {
+                showToast('Error saving settings: ' + error.message, 'error');
+            }
+        }
+
+        // Go back to dashboard
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        // Network Animation
+        class NetworkAnimation {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.particleCount = 80;
+                this.connectionDistance = 150;
+                this.connectionDistanceSq = 150 * 150;
+
+                this.targetFPS = 60;
+                this.frameInterval = 1000 / this.targetFPS;
+                this.lastTime = performance.now();
+
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+
+                this.init();
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                this.particles = [];
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 30,
+                        vy: (Math.random() - 0.5) * 30,
+                        radius: Math.random() * 2 + 1
+                    });
+                }
+            }
+
+            animate(currentTime = performance.now()) {
+                requestAnimationFrame((time) => this.animate(time));
+
+                const elapsed = currentTime - this.lastTime;
+                if (elapsed < this.frameInterval) return;
+
+                this.lastTime = currentTime - (elapsed % this.frameInterval);
+
+                const dt = Math.min(elapsed / 1000, 0.1);
+
+                const ctx = this.ctx;
+                const particles = this.particles;
+                const n = particles.length;
+                const connDistSq = this.connectionDistanceSq;
+                const connDist = this.connectionDistance;
+
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+                }
+
+                ctx.lineWidth = 1;
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    for (let j = i + 1; j < n; j++) {
+                        const o = particles[j];
+                        const dx = p.x - o.x;
+                        const dy = p.y - o.y;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq < connDistSq) {
+                            const opacity = (1 - Math.sqrt(distSq) / connDist) * 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(o.x, o.y);
+                            ctx.strokeStyle = `rgba(0,168,255,${opacity})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                ctx.fillStyle = 'rgba(0, 168, 255, 0.8)';
+                ctx.beginPath();
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    ctx.moveTo(p.x + p.radius, p.y);
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                }
+                ctx.fill();
+            }
+        }
+
+        function validateMinValue(input) {
+            const value = parseInt(input.value);
+            if (isNaN(value) || value < 1) {
+                input.value = 1;
+            }
+        }
+
+        function initNumberInputValidation() {
+            const numberInputs = [
+                'natural-replies-frequency',
+                'context-size',
+                'memory-limit',
+                'memory-top-k',
+                'knowledge-top-k',
+                'rate-limit'
+            ];
+
+            numberInputs.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        validateMinValue(this);
+                    });
+                    
+                    input.addEventListener('input', function() {
+                        const value = parseInt(this.value);
+                        if (value < 1 && this.value !== '') {
+                            this.style.borderColor = 'var(--danger)';
+                        } else {
+                            this.style.borderColor = '';
+                        }
+                    });
+                }
+            });
+        }
+
+        // Initialize
+        initVisualEffects().then(() => {
+            const canvas = document.getElementById('network-canvas');
+            if (!document.body.classList.contains('no-visual-effects') && canvas) {
+                new NetworkAnimation(canvas);
+            }
+        });
+        initAllModelSelects();
+        initNumberInputValidation();
+        loadBotSettings();
+    </script>
+</body>
+</html>

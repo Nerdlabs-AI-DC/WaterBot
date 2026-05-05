@@ -1,0 +1,17 @@
+# manager requirements
+flask
+flask-cors
+flask-session
+psutil
+gunicorn
+setuptools
+werkzeug
+
+# bot requirements
+discord
+requests
+openai
+cryptography
+numpy
+openrouter
+matplotlib

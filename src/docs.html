@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterBot — Docs</title>
+    <link rel="icon" type="image/png" href="assets/waterbot-small.png">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00a8ff;
+            --primary-glow: rgba(0, 168, 255, 0.5);
+            --secondary: #0088cc;
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(15, 20, 30, 0.85);
+            --text: #e1e8f0;
+            --text-dim: #8b95a5;
+            --border: rgba(0, 168, 255, 0.2);
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .top-bar-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .top-bar-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab-link {
+            font-family: 'Rajdhani', sans-serif;
+            padding: 0.5rem 1.5rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-link:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-link.active {
+            color: var(--primary);
+            background: rgba(0, 168, 255, 0.1);
+        }
+
+        /* Background canvas */
+        #network-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* Content */
+        .container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 70px);
+            padding: 2rem;
+        }
+
+        .placeholder-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            backdrop-filter: blur(24px);
+            padding: 3.5rem 4rem;
+            max-width: 540px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .placeholder-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary), #00d4ff);
+        }
+
+        .placeholder-icon {
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .placeholder-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--primary) 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .placeholder-badge {
+            display: inline-block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--primary);
+            background: rgba(0, 168, 255, 0.1);
+            border: 1px solid rgba(0, 168, 255, 0.3);
+            border-radius: 20px;
+            padding: 0.25rem 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .placeholder-text {
+            color: var(--text-dim);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .placeholder-text a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .placeholder-text a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            padding: 0.6rem 1.4rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+            border-color: var(--border);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .back-link img {
+            filter: brightness(0) invert(1) opacity(0.55);
+            transition: filter 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .back-link:hover img {
+            filter: brightness(0) invert(1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="top-bar-title">WaterBot</div>
+            <div class="top-bar-tabs">
+                <a href="/" class="tab-link">Home</a>
+                <a href="docs.html" class="tab-link active">Docs</a>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="network-canvas"></canvas>
+
+    <div class="container">
+        <div class="placeholder-card">
+            <span class="placeholder-icon"><img src="assets/book-open.svg" style="width: 3.5rem; height: 3.5rem;"></span>
+            <div class="placeholder-badge">Alpha</div>
+            <div class="placeholder-title">Docs Coming Soon</div>
+            <p class="placeholder-text">
+                Documentation isn't available yet in this alpha version of WaterBot.
+                In the meantime, feel free to ask for help in our <a href="https://discord.gg/rkSKtdW99R" target="_blank">Discord server</a>.
+            </p>
+            <a href="/" class="back-link"><img src="assets/arrow-left.svg" alt="back" class="inline-icon" style="width:1rem;height:1rem;"> Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        class NetworkAnimation {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.particleCount = 80;
+                this.connectionDistance = 150;
+                this.connectionDistanceSq = 150 * 150;
+
+                this.targetFPS = 60;
+                this.frameInterval = 1000 / this.targetFPS;
+                this.lastTime = performance.now();
+
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+
+                this.init();
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                this.particles = [];
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 30,
+                        vy: (Math.random() - 0.5) * 30,
+                        radius: Math.random() * 2 + 1
+                    });
+                }
+            }
+
+            animate(currentTime = performance.now()) {
+                requestAnimationFrame((time) => this.animate(time));
+
+                const elapsed = currentTime - this.lastTime;
+                if (elapsed < this.frameInterval) return;
+
+                this.lastTime = currentTime - (elapsed % this.frameInterval);
+
+                const dt = Math.min(elapsed / 1000, 0.1);
+
+                const ctx = this.ctx;
+                const particles = this.particles;
+                const n = particles.length;
+                const connDistSq = this.connectionDistanceSq;
+                const connDist = this.connectionDistance;
+
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+                }
+
+                ctx.lineWidth = 1;
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    for (let j = i + 1; j < n; j++) {
+                        const o = particles[j];
+                        const dx = p.x - o.x;
+                        const dy = p.y - o.y;
+                        const distSq = dx * dx + dy * dy;
+                        if (distSq < connDistSq) {
+                            const opacity = (1 - Math.sqrt(distSq) / connDist) * 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(o.x, o.y);
+                            ctx.strokeStyle = `rgba(0,168,255,${opacity})`;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                ctx.fillStyle = 'rgba(0, 168, 255, 0.8)';
+                ctx.beginPath();
+                for (let i = 0; i < n; i++) {
+                    const p = particles[i];
+                    ctx.moveTo(p.x + p.radius, p.y);
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                }
+                ctx.fill();
+            }
+        }
+
+        const canvas = document.getElementById('network-canvas');
+        new NetworkAnimation(canvas);
+    </script>
+</body>
+</html>
