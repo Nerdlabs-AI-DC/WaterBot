@@ -672,6 +672,12 @@
             gap: 0.5rem;
         }
 
+        .bot-actions-middle {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 0.5rem;
+        }
+
         .bot-actions-bottom {
             grid-column: 1 / -1;
             display: flex;
@@ -1991,9 +1997,12 @@
                                     `<button class="btn btn-success btn-small" onclick="startBot('${bot.id}')" ${inTransition || hasEmptyModels ? `disabled style="opacity:0.5;cursor:not-allowed;" title="${hasEmptyModels ? 'Configure missing models in Settings first' : ''}"` : ''}><img src="assets/power.svg" alt="start" class="inline-icon" style="margin-right:0.35rem;"> Start</button>`
                                 }
                             </div>
-                            <div class="bot-actions-bottom">
+                            <div class="bot-actions-middle">
                                 <button class="btn btn-small" onclick="window.location.href='bot-settings.html?id=${bot.id}'"><img src="assets/cog.svg" alt="settings" class="inline-icon" style="margin-right:0.35rem;"> Settings</button>
                                 <button class="btn btn-small" onclick="showLogs('${bot.id}')"><img src="assets/logs.svg" alt="logs" style="width:1rem;height:1rem;margin-right:0.5rem;"> Logs</button>
+                                <button class="btn btn-small" onclick="copyInviteLink('${bot.discordBotId}')" title="Copy invite link"><img src="assets/link.svg" alt="copy invite" class="inline-icon" style="margin-right:0.35rem;"> Invite</button>
+                            </div>
+                            <div class="bot-actions-bottom">
                                 <button class="btn btn-danger-dark btn-small" onclick="deleteBot('${bot.id}')"><img src="assets/trash.svg" alt="delete" class="inline-icon" style="margin-right:0.35rem;"> Delete</button>
                             </div>
                         </div>
@@ -2487,6 +2496,39 @@
             } finally {
                 transitioningBots.delete(id);
                 await renderBots();
+            }
+        }
+
+        function copyInviteLink(clientId) {
+            const inviteUrl = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=67584&integration_type=0&scope=bot`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(inviteUrl).then(() => {
+                    showToast('Invite link copied to clipboard!', 'success', 2500);
+                }).catch(err => {
+                    fallbackCopyToClipboard(inviteUrl);
+                });
+            } else {
+                fallbackCopyToClipboard(inviteUrl);
+            }
+        }
+
+        function fallbackCopyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            
+            try {
+                textarea.select();
+                document.execCommand('copy');
+                showToast('Invite link copied to clipboard!', 'success', 2500);
+            } catch (err) {
+                showToast('Failed to copy invite link', 'error');
+                console.error('Fallback copy failed:', err);
+            } finally {
+                document.body.removeChild(textarea);
             }
         }
 

@@ -647,6 +647,7 @@ def get_bots():
                     discord_info = validate_discord_token(bot_data["discordToken"])
                     if discord_info.get("valid"):
                         write_bot_meta(bot_dir, {
+                            "discord_id": discord_info.get("id"),
                             "discord_username": discord_info.get("username"),
                             "discord_avatar_url": discord_info.get("avatar_url"),
                             "discord_guild_count": discord_info.get("guild_count"),
@@ -656,6 +657,7 @@ def get_bots():
 
             meta = read_bot_meta(bot_dir)
             bot_data["lastStarted"] = meta.get("last_started")
+            bot_data["discordBotId"] = meta.get("discord_id")
             bot_data["discordUsername"] = meta.get("discord_username")
             bot_data["discordAvatarUrl"] = meta.get("discord_avatar_url")
             bot_data["discordGuildCount"] = meta.get("discord_guild_count")
