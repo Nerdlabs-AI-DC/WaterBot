@@ -40,6 +40,7 @@ setup(
     install_requires=[
         "flask",
         "flask-cors",
+        "flask-session",
         "psutil",
         "gunicorn",
         "setuptools",
