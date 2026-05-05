@@ -55,7 +55,7 @@ KNOWLEDGE_TOP_K = settings.get("knowledge_top_k", 3)
 DEBUG = settings.get("debug_mode", False)
 NATURAL_REPLIES_INTERVAL = settings.get("natural_replies_frequency", 180)
 MEMORY_LIMIT = settings.get("memory_limit", 500)
-DAILY_MESSAGE_LIMIT = 50
+DAILY_MESSAGE_LIMIT = settings.get("daily_message_limit", 50)
 RATE_LIMIT = settings.get("rate_limit", 10)
 
 if not CHEAP_MODEL:

@@ -64,6 +64,7 @@ DEFAULT_CONFIG = {
     "rate_limit_message": "You are going too fast. Let me take a breath pls",
     "ban_message": "You have been banned from using {bot-name}. Further messages will be ignored.",
     "memory_limit": 500,
+    "daily_message_limit": 50,
     "memory_top_k": 3,
     "knowledge_top_k": 3,
     "debug_mode": False,
@@ -632,6 +633,7 @@ def get_bots():
                             "rateLimitMessage": settings.get("rate_limit_message", "You are going too fast. Let me take a breath pls"),
                             "banMessage": settings.get("ban_message", "You have been banned from using {bot-name}. Further messages will be ignored."),
                             "memoryLimit": settings.get("memory_limit", 500),
+                            "dailyMessageLimit": settings.get("daily_message_limit", 50),
                             "memoryTopK": settings.get("memory_top_k", 3),
                             "knowledgeTopK": settings.get("knowledge_top_k", 3),
                             "debugMode": settings.get("debug_mode", False)
@@ -817,6 +819,7 @@ def update_bot(bot_id):
             "rate_limit_message": data.get('rateLimitMessage', 'You are going too fast. Let me take a breath pls'),
             "ban_message": data.get('banMessage', 'You have been banned from using {bot-name}. Further messages will be ignored.'),
             "memory_limit": data.get('memoryLimit', 500),
+            "daily_message_limit": data.get('dailyMessageLimit', 50),
             "memory_top_k": data.get('memoryTopK', 3),
             "knowledge_top_k": data.get('knowledgeTopK', 3),
             "debug_mode": data.get('debugMode', False)

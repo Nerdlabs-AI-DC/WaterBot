@@ -975,6 +975,12 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="daily-message-limit">Daily Message Limit</label>
+                        <input type="number" id="daily-message-limit" value="50" min="1" required>
+                        <div class="help-text">Number of messages a user can send per day before the cheap model is used (default: 50)</div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="rate-limit-message">Rate Limit Message</label>
                         <textarea id="rate-limit-message"></textarea>
                         <div class="help-text">Message shown to users when they hit the rate limit</div>
@@ -1512,6 +1518,7 @@
                 toggleNaturalReplies();
 
                 document.getElementById('embeddings-model').value = bot.embeddingsModel || '';
+                document.getElementById('daily-message-limit').value = bot.dailyMessageLimit || 50;
                 document.getElementById('context-size').value = bot.contextSize || 10;
                 document.getElementById('memory-limit').value = bot.memoryLimit || 500;
                 document.getElementById('memory-top-k').value = bot.memoryTopK || 3;
@@ -1560,6 +1567,7 @@
                 const integerFields = [
                     { id: 'context-size', name: 'Context Size' },
                     { id: 'memory-limit', name: 'Memory Limit' },
+                    { id: 'daily-message-limit', name: 'Daily Message Limit' },
                     { id: 'memory-top-k', name: 'Memory Top K' },
                     { id: 'knowledge-top-k', name: 'Knowledge Top K' },
                     { id: 'rate-limit', name: 'Rate Limit' }
@@ -1589,6 +1597,7 @@
                     naturalRepliesFrequency: parseInt(document.getElementById('natural-replies-frequency').value),
                     contextSize: parseInt(document.getElementById('context-size').value),
                     memoryLimit: parseInt(document.getElementById('memory-limit').value),
+                    dailyMessageLimit: parseInt(document.getElementById('daily-message-limit').value),
                     memoryTopK: parseInt(document.getElementById('memory-top-k').value),
                     knowledgeTopK: parseInt(document.getElementById('knowledge-top-k').value),
                     rateLimit: parseInt(document.getElementById('rate-limit').value),
