@@ -1,4 +1,5 @@
 # WaterBot
+
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E61JZM90) [![](https://dcbadge.limes.pink/api/server/rkSKtdW99R)](https://discord.gg/rkSKtdW99R)
 
 WaterBot is an all-in-one software for creating, managing, and hosting your very own AI Discord bots!
@@ -25,25 +26,56 @@ Keep an eye on CPU usage, memory usage, engagement metrics, growth statistics, a
 Detailed logs also make debugging easy.
 ### Many Use Cases
 Use them for casual chatting, productivity tools, customer support, private assistants, server utilities, or fully custom AI experiences for a specific purpose.
-## Getting started
-1. **Clone the repository**
-   ```
-   git clone https://github.com/Nerdlabs-AI-DC/WaterBot.git
-   cd waterbot
-   ```
 
-2. **Run the installer**
-   ```
-   chmod +x install.sh
-   ./install.sh
-   ```
+## Installation
 
-3. **Start WaterBot**
-   ```
-   waterbot
-   ```
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Nerdlabs-AI-DC/WaterBot.git
+cd WaterBot
+```
+
+### 2. Install dependencies
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+### 3. Start WaterBot
+
+```bash
+waterbot
+```
+
+## Usage
+
+Once WaterBot is running, open the url provided in the terminal to start the setup.
+
+After completing the setup, you can create your first bot by pressing the big "Create New Bot" button.
+
+## Supported Providers
+
+WaterBot currently has support for the following providers:
+
+- OpenAI
+- OpenRouter
+- Ollama
+
+Support for more providers will be added in the future. Providers supporting the OpenAI responses API format can be used by setting a custom OpenAI base url.
+
+## Support
+
+Need help or want to share feedback?
+
+- Join our Discord: https://discord.gg/rkSKtdW99R
+- Donate at https://ko-fi.com/purpyel to support development
+
+## License
+
+WaterBot is released under GPL-3.0. See [LICENSE](LICENSE) for details.
 
 ---
 
 Made with <3 by Nerdlabs AI
-Join our Discord at https://discord.gg/rkSKtdW99R
