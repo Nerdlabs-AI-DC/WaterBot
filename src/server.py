@@ -1330,10 +1330,38 @@ def get_configured_port() -> int:
         pass
     return MAIN_PORT
 
+
+def _sync_base_bot_to_src(src_dir: Path) -> None:
+    if not BASE_BOT_DIR.exists():
+        return
+    shutil.copytree(
+        BASE_BOT_DIR,
+        src_dir,
+        dirs_exist_ok=True,
+        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'),
+    )
+
+
+def sync_all_bots_from_base_bot() -> None:
+    for bot_dir in BOTS_DIR.iterdir():
+        if not bot_dir.is_dir():
+            continue
+
+        src_dir = bot_dir / 'src'
+        if not src_dir.exists():
+            continue
+
+        try:
+            _sync_base_bot_to_src(src_dir)
+            print(f"Updated bot {bot_dir.name}")
+        except Exception as e:
+            print(f"Failed to update bot {bot_dir.name}: {e}")
+
 print("WaterBot Server starting...")
 print("Bots directory:", BOTS_DIR)
 print("Global config:", GLOBAL_CONFIG_FILE)
 
+sync_all_bots_from_base_bot()
 autostart_enabled_bots()
 
 configured_port = get_configured_port()
