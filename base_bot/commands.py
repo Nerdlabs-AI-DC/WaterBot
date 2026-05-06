@@ -282,10 +282,6 @@ def setup(bot):
 
         # Get storage data
         daily_messages = storage.load_daily_counts() or {}
-        recent_freewill = storage.get_freewill_attempts() or {}
-        recent_questions = storage.load_recent_questions() or {}
-        serversettings = storage.load_settings() or {}
-        daily_quiz = storage.load_daily_quiz_records() or {}
         user_metrics = storage.load_user_metrics() or {}
 
         try:
@@ -333,19 +329,6 @@ def setup(bot):
         except Exception:
             avg_total_messages = "N/A"
 
-        try:
-            from memory import get_all_summaries, _read_json_encrypted
-            all_summaries = get_all_summaries() or []
-            memory_count = len(all_summaries)
-            try:
-                user_mem_data = _read_json_encrypted('user_memories_enc') or {}
-                user_mem_count = len(user_mem_data.keys()) if isinstance(user_mem_data, dict) else 0
-            except Exception:
-                user_mem_count = "N/A"
-        except Exception:
-            memory_count = "N/A"
-            user_mem_count = "N/A"
-
         # Get growth stats
         growth_stats = metrics.get_growth_stats()
 
@@ -372,7 +355,7 @@ def setup(bot):
         )
         growth_embed.add_field(name="Current Servers", value=f"**{server_count}**", inline=True)
         growth_embed.add_field(name="Current Users", value=f"**{user_count_from_file}**", inline=True)
-        growth_embed.add_field(name="Messages Tracked", value=f"**{messages_sent}**", inline=True)
+        growth_embed.add_field(name="Messages Sent", value=f"**{messages_sent}**", inline=True)
         
         if growth_stats.get("available"):
             weekly_servers = growth_stats.get("weekly", {}).get("servers", 0)
@@ -411,25 +394,9 @@ def setup(bot):
             color=discord.Color.gold(),
             description="Message and activity statistics"
         )
-        engagement_embed.add_field(name="Avg Daily Messages (Latest)", value=daily_avg_active, inline=True)
-        engagement_embed.add_field(name="Avg Messages per User", value=avg_total_messages, inline=True)
-        engagement_embed.add_field(name="Daily Message Records", value=len(daily_messages), inline=True)
+        engagement_embed.add_field(name="Avg Messages Per User (Today)", value=daily_avg_active, inline=True)
+        engagement_embed.add_field(name="Avg Messages Per User (All Time)", value=avg_total_messages, inline=True)
         embeds.append(engagement_embed)
-
-        # Data Storage Embed
-        storage_embed = discord.Embed(
-            title="💾 Data Storage",
-            color=discord.Color.greyple(),
-            description="Information about stored data"
-        )
-        storage_embed.add_field(name="Memory Summaries", value=memory_count, inline=True)
-        storage_embed.add_field(name="Users with Memories", value=user_mem_count, inline=True)
-        storage_embed.add_field(name="Quiz Records", value=len(daily_quiz), inline=True)
-        storage_embed.add_field(name="Server Settings", value=len(serversettings), inline=True)
-        storage_embed.add_field(name="User Metrics", value=len(user_metrics), inline=True)
-        storage_embed.add_field(name="Natural Replies Entries", value=len(recent_freewill), inline=True)
-        storage_embed.add_field(name="Recent Questions", value=len(recent_questions), inline=True)
-        embeds.append(storage_embed)
 
         # Send embeds
         await interaction.followup.send(embeds=embeds, ephemeral=True)
