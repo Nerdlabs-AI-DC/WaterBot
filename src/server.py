@@ -34,6 +34,8 @@ from collections import deque
 from gunicorn.app.base import BaseApplication
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+sys.path.append('..')
+from base_bot.encryption import encrypt_config_value, decrypt_config_value
 
 _data_env = os.environ.get("WATERBOT_DATA_DIR")
 BASE_DIR = Path(_data_env)
@@ -222,7 +224,7 @@ def fetch_provider_models(provider: str, config: dict) -> list:
 
     if provider == 'openrouter':
         api_keys = config.get('api_keys', {})
-        api_key = api_keys.get('openrouter', '')
+        api_key = decrypt_config_value(api_keys.get('openrouter', ''))
         headers = {'Content-Type': 'application/json'}
         if api_key:
             headers['Authorization'] = f'Bearer {api_key}'
@@ -243,7 +245,7 @@ def fetch_provider_models(provider: str, config: dict) -> list:
 
     elif provider == 'openai':
         api_keys = config.get('api_keys', {})
-        api_key = api_keys.get('openai', '')
+        api_key = decrypt_config_value(api_keys.get('openai', ''))
         if not api_key:
             return []
 
@@ -569,6 +571,12 @@ def save_global_config():
         new_provider = (config.get('ai_provider') or '').lower().strip()
         old_provider = (old_config.get('ai_provider') or '').lower().strip()
 
+        if config.get("api_keys"):
+            config["api_keys"] = {
+                provider: encrypt_config_value(key)
+                for provider, key in config["api_keys"].items()
+            }
+
         with open(GLOBAL_CONFIG_FILE, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
 
@@ -758,8 +766,10 @@ def create_bot():
             "debug_mode": data.get('debugMode', False),
             "other_options": {}
         }
-        
+
         settings_file = shared_dir / "settings.json"
+        if settings.get("DISCORD_TOKEN"):
+            settings["DISCORD_TOKEN"] = encrypt_config_value(settings["DISCORD_TOKEN"])
         with open(settings_file, 'w', encoding='utf-8') as f:
             json.dump(settings, f, indent=2, ensure_ascii=False)
         
@@ -826,7 +836,9 @@ def update_bot(bot_id):
             "knowledge_top_k": data.get('knowledgeTopK', 3),
             "debug_mode": data.get('debugMode', False)
         })
-        
+
+        if settings.get("DISCORD_TOKEN"):
+            settings["DISCORD_TOKEN"] = encrypt_config_value(settings["DISCORD_TOKEN"])
         with open(settings_file, 'w', encoding='utf-8') as f:
             json.dump(settings, f, indent=2, ensure_ascii=False)
 
@@ -1103,10 +1115,10 @@ def get_models():
 
         # Handle legacy single api_key field
         if not api_keys and config.get('api_key'):
-            api_keys = {provider: config['api_key']}
+            api_keys = {provider: decrypt_config_value(config['api_key'])}
 
         if provider == 'openrouter':
-            api_key = api_keys.get('openrouter', '')
+            api_key = decrypt_config_value(api_keys.get('openrouter', ''))
             headers = {'Content-Type': 'application/json'}
             if api_key:
                 headers['Authorization'] = f'Bearer {api_key}'
@@ -1135,7 +1147,7 @@ def get_models():
             return jsonify({'models': sorted(models), 'provider': 'openrouter'})
 
         elif provider == 'openai':
-            api_key = api_keys.get('openai', '')
+            api_key = decrypt_config_value(api_keys.get('openai', ''))
             if not api_key:
                 return jsonify({"error": "No OpenAI API key configured in global settings."}), 400
 
@@ -1194,7 +1206,7 @@ def get_embedding_models():
         api_keys = config.get('api_keys', {})
 
         if not api_keys and config.get('api_key'):
-            api_keys = {provider: config['api_key']}
+            api_keys = {provider: decrypt_config_value(config['api_key'])}
 
         if provider == 'openrouter':
             req = urllib.request.Request(
@@ -1213,7 +1225,7 @@ def get_embedding_models():
             return jsonify({'models': sorted(models), 'provider': 'openrouter'})
 
         elif provider == 'openai':
-            api_key = api_keys.get('openai', '')
+            api_key = decrypt_config_value(api_keys.get('openai', ''))
             if not api_key:
                 return jsonify({"error": "No OpenAI API key configured in global settings."}), 400
 

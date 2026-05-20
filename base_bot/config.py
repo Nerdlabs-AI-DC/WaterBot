@@ -21,6 +21,7 @@ from pathlib import Path
 import json
 import os
 from secret import get_or_create_memory_key_b64
+from encryption import decrypt_config_value
 
 DATA_DIR = Path("data")
 SHARED_DIR = Path("shared")
@@ -65,8 +66,8 @@ if not IMAGE_MODEL:
 
 
 PROVIDER = global_settings.get("ai_provider")
-API_KEY = global_settings.get("api_key")
-TOKEN = settings.get("DISCORD_TOKEN")
+API_KEY = decrypt_config_value(global_settings.get("api_key", ""))
+TOKEN = decrypt_config_value(settings.get("DISCORD_TOKEN", ""))
 MEMORY_KEY_B64 = get_or_create_memory_key_b64()
 
 OWNER_ID = 0
