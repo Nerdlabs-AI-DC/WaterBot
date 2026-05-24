@@ -88,7 +88,7 @@ DEFAULT_OPENAI_MODEL = "gpt-5.4-mini"
 DEFAULT_OPENROUTER_MODEL = "deepseek/deepseek-v4-flash"
 DEFAULT_OPENAI_EMBEDDINGS_MODEL = "text-embedding-3-small"
 DEFAULT_OPENROUTER_EMBEDDINGS_MODEL = "openai/text-embedding-3-small"
-DEFAULT_OPENROUTER_IMAGE_MODEL = "openai/gpt-5.4-mini"
+DEFAULT_OPENROUTER_IMAGE_MODEL = "openai/gpt-5.4-nano"
 
 app = Flask(__name__, static_folder='../static/assets', static_url_path='/assets')
 CORS(app)
