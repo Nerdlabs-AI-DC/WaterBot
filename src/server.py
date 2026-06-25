@@ -1158,6 +1158,184 @@ def get_version():
 
 
 
+@app.route('/api/update/check', methods=['GET'])
+@requires_auth
+def check_for_update():
+    """Check if an update is available."""
+    try:
+        from src.update import is_update_available, get_current_version
+        
+        result = is_update_available()
+        if result is None:
+            return jsonify({
+                'available': False,
+                'current_version': get_current_version(),
+                'error': 'Could not check for updates'
+            })
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            'available': False,
+            'current_version': get_current_version(),
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/update/info', methods=['GET'])
+@requires_auth
+def get_update_info():
+    """Get detailed update information."""
+    try:
+        from src.update import is_update_available, get_update_state, get_current_version
+        
+        result = is_update_available()
+        state = get_update_state()
+        current = get_current_version()
+        
+        if result is None:
+            return jsonify({
+                'available': False,
+                'current_version': current,
+                'in_progress': state.get('status') == 'starting',
+                'error': 'Could not check for updates'
+            })
+        
+        return jsonify({
+            **result,
+            'in_progress': state.get('status') == 'starting',
+            'state': state
+        })
+    except Exception as e:
+        from src.update import get_current_version
+        return jsonify({
+            'available': False,
+            'current_version': get_current_version(),
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/update/state', methods=['GET'])
+@requires_auth
+def get_update_state_endpoint():
+    """Get the current update state."""
+    try:
+        from src.update import get_update_state
+        return jsonify(get_update_state())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/update/start', methods=['POST'])
+@requires_auth
+def start_update():
+    """Start the update process."""
+    try:
+        from src.update import perform_update, is_update_in_progress, fetch_latest_release, get_update_state, clear_update_state, UPDATE_STATE_FILE
+        
+        if is_update_in_progress():
+            return jsonify({
+                'success': False,
+                'error': 'Update already in progress'
+            }), 400
+        
+        release_info = fetch_latest_release()
+        if not release_info:
+            return jsonify({
+                'success': False,
+                'error': 'Could not fetch release information'
+            }), 500
+        
+        clear_update_state()
+        
+        def progress_callback(progress: int, message: str):
+            state = get_update_state()
+            state['progress'] = progress
+            if state.get('status') != 'completed' and state.get('status') != 'failed':
+                state['status'] = 'in_progress'
+            state['message'] = message
+            state['started_at'] = state.get('started_at', time.time())
+            
+            UPDATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(UPDATE_STATE_FILE, 'w') as f:
+                json.dump(state, f)
+        
+        def run_update():
+            try:
+                result = perform_update(release_info, progress_callback)
+                state = get_update_state()
+                state.update(result)
+                with open(UPDATE_STATE_FILE, 'w') as f:
+                    json.dump(state, f)
+            except Exception as e:
+                state = get_update_state()
+                state['status'] = 'failed'
+                state['error'] = str(e)
+                state['completed_at'] = time.time()
+                with open(UPDATE_STATE_FILE, 'w') as f:
+                    json.dump(state, f)
+        
+        update_thread = threading.Thread(target=run_update, daemon=True)
+        update_thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Update started in background',
+            'version': release_info.get('tag_name', release_info.get('name', 'unknown'))
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/update/rollback', methods=['POST'])
+@requires_auth
+def rollback_update_endpoint():
+    """Rollback to the previous version."""
+    try:
+        from src.update import rollback_update
+        result = rollback_update()
+        if result.get('success'):
+            return jsonify(result)
+        else:
+            return jsonify(result), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/update/progress', methods=['GET'])
+@requires_auth
+def get_update_progress():
+    """Get the current update progress."""
+    try:
+        from src.update import get_update_state
+        state = get_update_state()
+        return jsonify(state)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+_update_checker = None
+
+
+def init_update_checker():
+    """Initialize the background update checker."""
+    global _update_checker
+    try:
+        from src.update import UpdateChecker
+        _update_checker = UpdateChecker(check_interval=3600, include_prereleases=True)
+        _update_checker.start()
+        print("Update checker started")
+    except Exception as e:
+        print(f"Failed to start update checker: {e}")
+
+
 def autostart_enabled_bots():
     """Start all bots with autostart enabled"""
     for bot_dir in BOTS_DIR.iterdir():
@@ -1249,6 +1427,9 @@ print("Global config:", GLOBAL_CONFIG_FILE)
 
 sync_all_bots_from_base_bot()
 autostart_enabled_bots()
+
+# Initialize update checker
+init_update_checker()
 
 configured_port = get_configured_port()
 print(f"\n✅ Dashboard is running at http://{get_local_ip()}:{configured_port}\n")

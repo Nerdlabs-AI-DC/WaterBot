@@ -44,6 +44,7 @@ setup(
         "psutil",
         "gunicorn",
         "setuptools",
+        "packaging",
         "discord",
         "requests",
         "openai",

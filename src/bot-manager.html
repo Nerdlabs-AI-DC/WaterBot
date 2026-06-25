@@ -1250,6 +1250,161 @@
             margin: 0 0.6rem;
             opacity: 0.3;
         }
+
+        /* Update Modal */
+        .update-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: min(100%, 480px);
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .update-modal.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+
+        .update-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            z-index: 2999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .update-modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .update-modal .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .update-modal .modal-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .update-modal .modal-body {
+            padding: 1.5rem;
+        }
+
+        .update-modal .update-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .update-modal .version-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .update-modal .version-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .update-modal .version-value {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .update-modal .current-version {
+            color: var(--text-dim);
+        }
+
+        .update-modal .latest-version {
+            color: var(--primary);
+        }
+
+        .update-modal .release-notes {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .update-modal .release-notes h4 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .update-modal .release-notes p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .update-modal .modal-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .update-modal .progress-container {
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .update-modal .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .update-modal .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 999px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .update-modal .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -1269,6 +1424,7 @@
                 <button class="btn btn-icon" onclick="toggleLogoutMenu(event)" title="Actions"><img src="assets/power.svg" alt="actions" class="inline-icon"></button>
                 <div id="logout-menu" class="logout-menu">
                     <button type="button" onclick="handleLogout()"><img src="assets/log-out.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Log out</button>
+                    <button type="button" onclick="checkForUpdates()" id="update-menu-btn"><img src="assets/download.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Update</button>
                     <button type="button" onclick="restartWaterBot()"><img src="assets/refresh-ccw.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Restart</button>
                     <div class="logout-divider"></div>
                     <button type="button" class="danger" onclick="shutdownWaterBot()"><img src="assets/power-danger.svg" alt="" class="inline-icon" style="margin-right:0.5rem;opacity:0.7;"> Shut down</button>
@@ -1291,6 +1447,47 @@
         </div>
 
         <div id="bots-grid" class="grid"></div>
+    </div>
+
+    <!-- Update Modal -->
+    <div id="update-modal-overlay" class="update-modal-overlay"></div>
+    <div id="update-modal" class="update-modal">
+        <div class="modal-header">
+            <div class="modal-title">Update Available</div>
+        </div>
+        <div class="modal-body">
+            <div class="update-info">
+                <div class="version-info">
+                    <div>
+                        <div class="version-label">Current Version</div>
+                        <div class="version-value current-version" id="current-version"></div>
+                    </div>
+                    <div>
+                        <div class="version-label">Latest Version</div>
+                        <div class="version-value latest-version" id="latest-version"></div>
+                    </div>
+                </div>
+                <div class="release-notes" id="release-notes">
+                    <h4>Release Notes</h4>
+                    <p id="release-notes-content"></p>
+                </div>
+                <div class="progress-container" id="update-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progress-message">Starting update...</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" onclick="closeUpdateModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="startUpdate()" id="update-btn">
+                <span id="update-btn-text">Update Now</span>
+            </button>
+        </div>
     </div>
 
     <!-- Create Bot Modal -->
@@ -2775,6 +2972,207 @@
                 showToast('Error restarting WaterBot.', 'error');
             }
         }
+
+        // Update System Functions
+        let updateInfo = null;
+        let updateCheckInterval = null;
+
+        async function checkForUpdates() {
+            hideLogoutMenu();
+            try {
+                const response = await fetch(`${API_BASE}/api/update/info`);
+                const data = await response.json();
+                
+                if (data && data.available) {
+                    updateInfo = data;
+                    showUpdateModal(data);
+                } else {
+                    const currentVersion = data?.current_version || 'unknown';
+                    const latestVersion = data?.latest_version || currentVersion;
+                    showToast(`WaterBot is up to date (v${currentVersion})`, 'success');
+                }
+            } catch (error) {
+                console.error('Update check error:', error);
+                showToast('Could not check for updates. Please try again.', 'error');
+            }
+        }
+
+        function showUpdateModal(data) {
+            const modal = document.getElementById('update-modal');
+            const overlay = document.getElementById('update-modal-overlay');
+            
+            document.getElementById('current-version').textContent = data.current_version || 'Unknown';
+            document.getElementById('latest-version').textContent = data.latest_version || 'Unknown';
+            
+            const release = data.release || {};
+            const releaseNotes = release.body || 'No release notes available.';
+            document.getElementById('release-notes-content').textContent = releaseNotes;
+            
+            modal.classList.add('visible');
+            overlay.classList.add('visible');
+        }
+
+        function closeUpdateModal() {
+            const modal = document.getElementById('update-modal');
+            const overlay = document.getElementById('update-modal-overlay');
+            modal.classList.remove('visible');
+            overlay.classList.remove('visible');
+        }
+
+        async function startUpdate() {
+            const btn = document.getElementById('update-btn');
+            const btnText = document.getElementById('update-btn-text');
+            const progressContainer = document.getElementById('update-progress');
+            const progressFill = document.getElementById('progress-fill');
+            const progressMessage = document.getElementById('progress-message');
+            const progressPercent = document.getElementById('progress-percent');
+            
+            btn.disabled = true;
+            btnText.textContent = 'Updating...';
+            progressContainer.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/update/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showToast(data.message || 'Update started!', 'success');
+                    
+                    pollUpdateProgress(progressFill, progressMessage, progressPercent);
+                } else {
+                    throw new Error(data.error || 'Failed to start update');
+                }
+            } catch (error) {
+                console.error('Update start error:', error);
+                showToast(error.message || 'Failed to start update', 'error');
+                btn.disabled = false;
+                btnText.textContent = 'Update Now';
+            }
+        }
+
+        async function pollUpdateProgress(progressFill, progressMessage, progressPercent) {
+            const updateBtn = document.getElementById('update-btn');
+            const updateBtnText = document.getElementById('update-btn-text');
+
+            const poll = async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/api/update/progress`);
+                    const data = await response.json();
+                    
+                    if (data && data.progress !== undefined) {
+                        progressFill.style.width = `${data.progress}%`;
+                        progressPercent.textContent = `${Math.round(data.progress)}%`;
+                        progressMessage.textContent = data.message || 'Updating...';
+                    }
+                    
+                    if (data.status === 'completed') {
+                        const modal = document.getElementById('update-modal');
+                        const modalTitle = document.querySelector('.update-modal .modal-title');
+                        const progressContainer = document.getElementById('update-progress');
+                        const modalBody = document.querySelector('.update-modal .modal-body');
+                        const modalFooter = document.querySelector('.update-modal .modal-footer');
+                        const btn = document.getElementById('update-btn');
+                        
+                        modalTitle.textContent = 'Update Complete!';
+                        progressContainer.style.display = 'none';
+                        modalBody.innerHTML = `
+                            <div class="update-complete-message" style="text-align: center; padding: 20px;">
+                                <img src="assets/check.svg" alt="Success" style="width: 80px; height: 80px; margin-bottom: 20px;">
+                                <h3 style="color: var(--success-color); margin-bottom: 15px;">Update Successful!</h3>
+                                <p style="margin-bottom: 20px;">WaterBot has been updated to version ${data.version || 'latest'}.</p>
+                                <p style="margin-bottom: 20px;"><strong>Please restart WaterBot to apply the changes.</strong></p>
+                            </div>
+                        `;
+                        modalFooter.innerHTML = `
+                            <button type="button" class="btn btn-primary" onclick="restartWaterBot(); closeUpdateModal()">Restart Now</button>
+                            <button type="button" class="btn" onclick="closeUpdateModal()">Close</button>
+                        `;
+                        
+                        btn.disabled = false;
+                        return true;
+                    } else if (data.status === 'failed') {
+                        const modal = document.getElementById('update-modal');
+                        const modalTitle = document.querySelector('.update-modal .modal-title');
+                        const progressContainer = document.getElementById('update-progress');
+                        const modalBody = document.querySelector('.update-modal .modal-body');
+                        const modalFooter = document.querySelector('.update-modal .modal-footer');
+                        const btn = document.getElementById('update-btn');
+                        const btnText = document.getElementById('update-btn-text');
+                        
+                        modalTitle.textContent = 'Update Failed';
+                        progressContainer.style.display = 'none';
+                        modalBody.innerHTML = `
+                            <div class="update-error-message" style="text-align: center; padding: 20px;">
+                                <h3 style="color: var(--error-color); margin-bottom: 15px;">✗ Update Failed</h3>
+                                <p style="margin-bottom: 20px; color: var(--text-secondary);">${data.error || 'An error occurred during the update process.'}</p>
+                            </div>
+                        `;
+                        modalFooter.innerHTML = `
+                            <button type="button" class="btn" onclick="closeUpdateModal()">Close</button>
+                        `;
+                        
+                        btn.disabled = false;
+                        btnText.textContent = 'Update Now';
+                        return true;
+                    }
+                    
+                    setTimeout(poll, 2000);
+                } catch (error) {
+                    console.error('Progress poll error:', error);
+                    setTimeout(poll, 5000);
+                }
+            };
+            
+            poll();
+        }
+
+        async function getUpdateStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/update/state`);
+                return await response.json();
+            } catch (error) {
+                console.error('Get update state error:', error);
+                return { status: 'error', error: error.message };
+            }
+        }
+
+        async function checkUpdatesOnLoad() {
+            try {
+                const response = await fetch(`${API_BASE}/api/update/check`);
+                const data = await response.json();
+                
+                if (data && data.available) {
+                    updateInfo = data;
+                    showUpdateNotification(data);
+                }
+            } catch (error) {
+                console.log('Update check on load failed:', error);
+            }
+        }
+
+        function showUpdateNotification(data) {
+            console.log('Update available:', data.latest_version);
+            showToast('An update is available: v' + data.latest_version, 'info')
+        }
+
+        function startUpdateCheckInterval() {
+            checkUpdatesOnLoad();
+            
+            updateCheckInterval = setInterval(checkUpdatesOnLoad, 3600000);
+        }
+
+        function stopUpdateCheckInterval() {
+            if (updateCheckInterval) {
+                clearInterval(updateCheckInterval);
+                updateCheckInterval = null;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', startUpdateCheckInterval);
 
         async function showGlobalSettings() {
             try {
