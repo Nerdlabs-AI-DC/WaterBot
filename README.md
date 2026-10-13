@@ -5,6 +5,14 @@
 WaterBot is an all-in-one software for creating, managing, and hosting your very own AI Discord bots!
 
 Whether you want a fun chatbot to spice up your server, a helpful assistant to help your community, or a specialized AI tool for a specific task, WaterBot makes it simple to bring your idea to life without needing to code.
+## Imporant Announcement
+I am no longer maintaining this project.
+This is becuase i am not really interested in AI anymore, especially with the bad reputation that it has gotten recently. And due to Discord's recent bad efforts, i am also no longer active on the Discord platform.
+My apologies if this upsets you.
+
+If you are interested in maintaining WaterBot yourself, feel free to make a fork of the project and continue to maintain it.
+
+-Purpyel, Developer of WaterBot
 ## Features
 ### User-Friendly Design
 WaterBot is designed with ease of use in mind.
